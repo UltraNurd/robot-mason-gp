@@ -7,6 +7,7 @@
 package edu.harvard.seas.cs266.naptime;
 
 import java.awt.Color;
+import java.awt.Paint;
 
 import javax.swing.JFrame;
 
@@ -91,11 +92,11 @@ public class TournamentWithUI extends GUIState {
 		fieldPortrayal.setField(tourney.field);
 		
 		// Define how to draw food
-		fieldPortrayal.setPortrayalForClass(Treat.class, new OvalPortrayal2D());
+		fieldPortrayal.setPortrayalForClass(Treat.class, new OvalPortrayal2D(new Color(255, 128, 0), 4.0));
 		
 		// Clear the view
 		display.reset();
-		display.setBackdrop(Color.green);
+		display.setBackdrop(new Color(0, 192, 0));
 		display.repaint();
 	}
 	
