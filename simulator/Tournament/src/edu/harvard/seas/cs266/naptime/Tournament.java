@@ -18,9 +18,19 @@ import sim.util.Double2D;
 @SuppressWarnings("serial")
 public class Tournament extends SimState {
 	/**
+	 * The length of the field from goal to goal.
+	 */
+	public static final int fieldLength = 220;
+	
+	/**
+	 * The width of the field (between the non-goal sides).
+	 */
+	public static final int fieldWidth = 150;
+
+	/**
 	 * Representation of 2-D space where robots will forage for food.
 	 */
-	public Continuous2D field = new Continuous2D(1.0, 220, 150);
+	public Continuous2D field = new Continuous2D(1.0, fieldLength, fieldWidth);
 	
 	/**
 	 * Initial count of food particles in the field (may get parameterized).

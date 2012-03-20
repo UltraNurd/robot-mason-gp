@@ -108,7 +108,7 @@ public class TournamentWithUI extends GUIState {
 	public void init(Controller c) {
 		// Create a view that will display the current field
 		super.init(c);
-		display = new Display2D(600, 600, this);
+		display = new Display2D(Tournament.fieldLength*4, Tournament.fieldWidth*4, this);
 		
 		// Attach the view to the controller's window
 		displayFrame = display.createFrame();
