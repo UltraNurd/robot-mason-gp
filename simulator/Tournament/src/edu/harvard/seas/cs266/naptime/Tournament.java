@@ -60,8 +60,8 @@ public class Tournament extends SimState {
 		for (int t = 0; t < nTreats; t++) {
 			Treat treat = new Treat();
 			field.setObjectLocation(treat,
-									new Double2D(field.getWidth()*random.nextDouble(),
-												 field.getHeight()*random.nextDouble()));
+									new Double2D(field.getWidth()*(random.nextDouble()*0.8 + 0.1),
+												 field.getHeight()*(random.nextDouble()*0.8 + 0.1)));
 		}
 	}
 
