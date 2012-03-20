@@ -58,10 +58,14 @@ public class Tournament extends SimState {
 		
 		// Add some randomly distributed food to the field
 		for (int t = 0; t < nTreats; t++) {
+			// Select a random but empty location
+			Double2D treatLocation;
+			do {
+				treatLocation = new Double2D(field.getWidth()*(random.nextDouble()*0.8 + 0.1),
+						 					 field.getHeight()*(random.nextDouble()*0.8 + 0.1));
+			} while (field.getObjectsWithinDistance(treatLocation, 4.0).size() > 0);
 			Treat treat = new Treat();
-			field.setObjectLocation(treat,
-									new Double2D(field.getWidth()*(random.nextDouble()*0.8 + 0.1),
-												 field.getHeight()*(random.nextDouble()*0.8 + 0.1)));
+			field.setObjectLocation(treat, treatLocation);
 		}
 	}
 
