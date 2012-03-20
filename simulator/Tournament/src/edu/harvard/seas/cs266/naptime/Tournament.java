@@ -56,6 +56,10 @@ public class Tournament extends SimState {
 		// Clear the field of food and robots
 		field.clear();
 		
+		// Add our team of robots to the field and activate them
+		Team team = new Team(field);
+		schedule.scheduleRepeating(team);
+		
 		// Add some randomly distributed food to the field
 		for (int t = 0; t < nTreats; t++) {
 			// Select a random but empty location
