@@ -17,13 +17,15 @@ public class Robot implements Steppable {
 		Double2D current = tourney.field.getObjectLocation(this);
 		Double2D objective = senseNextObjective(current, tourney.field);
 		
-		// Move in that direction
+		// Move in that direction, slowing as we approach
+		double distanceToObjective = current.distance(objective);
+		if (distanceToObjective < 8.0)
+			return;
 		double speed = 1.0;
 		Double2D destination = objective.subtract(current);
 		destination = destination.normalize();
 		destination = destination.resize(speed);
 		destination = destination.add(current);
-		System.out.println(destination);
 		tourney.field.setObjectLocation(this, destination);
 	}
 
