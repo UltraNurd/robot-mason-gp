@@ -12,5 +12,8 @@ package edu.harvard.seas.cs266.naptime;
  * @author nward@fas.harvard.edu
  */
 public class Treat {
-
+	/**
+	 * The radius of the food-representing balls.
+	 */
+	public static final double treatSize = 4.0;
 }

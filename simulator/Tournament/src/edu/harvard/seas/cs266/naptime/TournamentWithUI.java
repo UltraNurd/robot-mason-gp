@@ -92,7 +92,7 @@ public class TournamentWithUI extends GUIState {
 		fieldPortrayal.setField(tourney.field);
 		
 		// Define how to draw food
-		fieldPortrayal.setPortrayalForClass(Treat.class, new OvalPortrayal2D(new Color(255, 128, 0), 4.0));
+		fieldPortrayal.setPortrayalForClass(Treat.class, new OvalPortrayal2D(new Color(255, 128, 0), Treat.treatSize));
 		
 		// Clear the view
 		display.reset();
