@@ -8,6 +8,11 @@ import sim.util.Double2D;
 
 @SuppressWarnings("serial")
 public class Robot implements Steppable {
+	/**
+	 * The radius of the round robots.
+	 */
+	public static final double robotSize = 12.0;
+
 	@Override
 	public void step(SimState state) {
 		// Get the current simulation
@@ -19,7 +24,7 @@ public class Robot implements Steppable {
 		
 		// Move in that direction, slowing as we approach
 		double distanceToObjective = current.distance(objective);
-		if (distanceToObjective < 8.0)
+		if (distanceToObjective < (Robot.robotSize + Treat.treatSize)/2.0)
 			return;
 		double speed = 1.0;
 		Double2D destination = objective.subtract(current);

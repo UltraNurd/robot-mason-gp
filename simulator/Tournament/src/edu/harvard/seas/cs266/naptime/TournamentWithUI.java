@@ -92,7 +92,7 @@ public class TournamentWithUI extends GUIState {
 		fieldPortrayal.setField(tourney.field);
 		
 		// Define how to draw robots
-		fieldPortrayal.setPortrayalForClass(Robot.class, new OvalPortrayal2D(Color.black, 12.0, false));
+		fieldPortrayal.setPortrayalForClass(Robot.class, new OvalPortrayal2D(Color.black, Robot.robotSize, false));
 		
 		// Define how to draw food
 		fieldPortrayal.setPortrayalForClass(Treat.class, new OvalPortrayal2D(new Color(255, 128, 0), Treat.treatSize));
