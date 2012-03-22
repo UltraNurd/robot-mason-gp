@@ -3,15 +3,21 @@ package edu.harvard.seas.cs266.naptime;
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.field.continuous.Continuous2D;
+import sim.portrayal.Oriented2D;
 import sim.util.Bag;
 import sim.util.Double2D;
 
 @SuppressWarnings("serial")
-public class Robot implements Steppable {
+public class Robot implements Steppable, Oriented2D {
 	/**
 	 * The radius of the round robots.
 	 */
 	public static final double robotSize = 12.0;
+	
+	/**
+	 * The current facing of the robot. Its front is where the camera and kicker are.
+	 */
+	private double orientation = 0.0;
 
 	@Override
 	public void step(SimState state) {
@@ -52,5 +58,10 @@ public class Robot implements Steppable {
 		if (objective == null)
 			return current;
 		return objective;
+	}
+
+	@Override
+	public double orientation2D() {
+		return orientation;
 	}
 }

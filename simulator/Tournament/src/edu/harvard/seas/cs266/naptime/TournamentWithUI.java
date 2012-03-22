@@ -7,8 +7,6 @@
 package edu.harvard.seas.cs266.naptime;
 
 import java.awt.Color;
-import java.awt.Paint;
-
 import javax.swing.JFrame;
 
 import sim.display.Console;
@@ -17,6 +15,7 @@ import sim.display.Display2D;
 import sim.display.GUIState;
 import sim.engine.SimState;
 import sim.portrayal.continuous.ContinuousPortrayal2D;
+import sim.portrayal.simple.OrientedPortrayal2D;
 import sim.portrayal.simple.OvalPortrayal2D;
 
 /**
@@ -92,7 +91,7 @@ public class TournamentWithUI extends GUIState {
 		fieldPortrayal.setField(tourney.field);
 		
 		// Define how to draw robots
-		fieldPortrayal.setPortrayalForClass(Robot.class, new OvalPortrayal2D(Color.black, Robot.robotSize, false));
+		fieldPortrayal.setPortrayalForClass(Robot.class, new OrientedPortrayal2D(new OvalPortrayal2D(Color.black, Robot.robotSize, false), 12, 6.0, Color.black));
 		
 		// Define how to draw food
 		fieldPortrayal.setPortrayalForClass(Treat.class, new OvalPortrayal2D(new Color(255, 128, 0), Treat.treatSize));
