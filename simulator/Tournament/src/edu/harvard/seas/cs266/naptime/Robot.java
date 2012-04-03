@@ -1,13 +1,9 @@
 package edu.harvard.seas.cs266.naptime;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.field.continuous.Continuous2D;
 import sim.portrayal.Oriented2D;
-import sim.util.Bag;
 import sim.util.Double2D;
 
 @SuppressWarnings("serial")
@@ -21,6 +17,12 @@ public class Robot implements Steppable, Oriented2D {
 	 * The current facing of the robot. Its front is where the camera and kicker are.
 	 */
 	private double orientation = 0.0;
+	
+	/**
+	 * The robot's current "camera" view, a single line of 30 pixels, storing
+	 * references to the "seen" object.
+	 */
+	private Object camera[] = new Object[30];
 	
 	/**
 	 * The speed (in units per step) of the robot's left motor.
@@ -56,69 +58,124 @@ public class Robot implements Steppable, Oriented2D {
 	 */
 	private void sense(Continuous2D field) {
 		// Look for food in the camera's POV
-		List<Double> objective;
-		try {
-			objective = lookForObjective(field, Treat.class);
-		} catch (Exception e) {
-			e.printStackTrace();
-			return;
-		}
+		updateCamera(field);
+		int foodMidpoint = findMidpointOfObjectiveInView();
 		
-		// Determine the angle to the objective
+		// Determine left/right offset to the objective
 		double baseSpeed = 0.1;
-		if (objective.get(0) < -baseSpeed/robotSize || objective.get(1) == Double.MAX_VALUE)
+		if (foodMidpoint < 15)
 			// Turn right
 			setSpeed(baseSpeed, -baseSpeed);
-		else if (objective.get(0) > baseSpeed/robotSize)
+		else if (foodMidpoint > 15)
 			// Turn left
 			setSpeed(-baseSpeed, baseSpeed);
-		else if (objective.get(1) > 2*baseSpeed + robotSize/2)
-			// Move forward at full speed
-			setSpeed(2*baseSpeed, 2*baseSpeed);
-		else
-			// Move to the objective (last step)
-			setSpeed(objective.get(1) - robotSize/2, objective.get(1) - robotSize/2);
+		else {
+			// Straight ahead, so check if the objective is food-sized and immediately in front
+			if (findWidthOfObjectiveInView() < 13)
+				// Move forward at full speed
+				setSpeed(2*baseSpeed, 2*baseSpeed);
+			else
+				// Don't move
+				setSpeed(0, 0);
+		}
 	}
 	
-	private List<Double> lookForObjective(Continuous2D field, Class<Treat> targetClass) throws InstantiationException, IllegalAccessException {
+	/**
+	 * Update the robot's internal camera buffer with the closest
+	 * object currently in view.
+	 */
+	private void updateCamera(Continuous2D field) {
+		// Calculate some camera constants
+		final double imageWidth = Math.tan(Math.PI/6)*robotSize;
+		
 		// Get the robot's current location
 		Double2D current = field.getObjectLocation(this);
 		
-		// Generate the orientation vector
-		Double2D direction = new Double2D(Math.cos(orientation), Math.sin(orientation));
-		
 		// Find the closest object of the specified type within the field of view
 		double minDistance = Double.MAX_VALUE;
-		double angleToClosestObjective = 0.0;
+		Object minObjective = null;
+		int minPixelLeft = 30;
+		int minPixelRight = -1;
 		for (Object objective: field.getAllObjects()) {
-			if (objective.getClass() == targetClass) {
-				// Get the normalized relative position vector for this object
-				Double2D position = field.getObjectLocation(objective).subtract(current).normalize();
+			if (objective.getClass() == Treat.class) {
+				// Get the relative position vector for this objective
+				Double2D position = field.getObjectLocation(objective).subtract(current).rotate(-orientation);
 				
-				// Find the angle to the object
-				double dotLength = position.dot(direction);
-				double objectiveAngle = Math.acos(dotLength);
-				if (position.subtract(direction.resize(dotLength)).y < 0) {
-					objectiveAngle *= -1;
-				}
+				// Make sure the objective is in view
+				double objectiveAngle = Math.atan2(position.y, position.x);
+				if (objectiveAngle < -Math.PI/6 || objectiveAngle > Math.PI/6)
+					continue;
 				
-				// Check that the angle is within the POV
-				if (Math.abs(objectiveAngle) < Math.PI/6) {
-					// Update the closest objective
-					double distance = field.getObjectLocation(objective).distance(current);
-					if (distance < minDistance) {
-						minDistance = distance;
-						angleToClosestObjective = objectiveAngle;
-					}
+				// Project the object onto the camera's image plane
+				double imagePlaneLeft = (position.y - Treat.treatSize/2)*(robotSize/2)/position.x;
+				double imagePlaneRight = (position.y + Treat.treatSize/2)*(robotSize/2)/position.x;
+				int pixelLeft = (int) Math.round(imagePlaneLeft*30/imageWidth) + 14;
+				int pixelRight = (int) Math.round(imagePlaneRight*30/imageWidth) + 14;
+				
+				// Update the closest visible objective
+				double distance = position.length();
+				if (distance < minDistance) {
+					minDistance = distance;
+					minObjective = objective;
+					minPixelLeft = pixelLeft;
+					minPixelRight = pixelRight;
 				}
 			}
 		}
 		
-		// Done
-		List<Double> toObjective = new ArrayList<Double>();
-		toObjective.add(angleToClosestObjective);
-		toObjective.add(minDistance);
-		return toObjective;
+		// Update the camera view
+		for (int pixel = 0; pixel < 30; pixel++)
+			if (pixel >= minPixelLeft && pixel <= minPixelRight) {
+				camera[pixel] = minObjective;
+			} else {
+				camera[pixel] = null;
+			}
+	}
+	
+	/**
+	 * Hacky method for finding the midpoint of the object in view.
+	 */
+	private int findMidpointOfObjectiveInView() {
+		// Loop through the camera buffer, checking for object boundaries
+		int pixelLeft = -1;
+		int pixelRight = -1;
+		for (int pixel = 0; pixel < 30; pixel++) {
+			if (pixelLeft == -1 && camera[pixel] != null)
+				pixelLeft = pixel;
+			if (pixelLeft != -1 && pixelRight == -1 && camera[pixel] == null)
+				pixelRight = pixel - 1;
+		}
+		
+		// Check for edge-crossing and calculate the midpoint
+		if (pixelLeft == -1)
+			return 0;
+		else if (pixelRight == -1)
+			return 29;
+		else
+			return (pixelLeft + pixelRight)/2;
+	}
+
+	/**
+	 * Hacky method for finding the width of the object in view.
+	 */
+	private int findWidthOfObjectiveInView() {
+		// Loop through the camera buffer, checking for object boundaries
+		int pixelLeft = -1;
+		int pixelRight = -1;
+		for (int pixel = 0; pixel < 30; pixel++) {
+			if (pixelLeft == -1 && camera[pixel] != null)
+				pixelLeft = pixel;
+			if (pixelLeft != -1 && pixelRight == -1 && camera[pixel] == null)
+				pixelRight = pixel - 1;
+		}
+		
+		// Check for edge-crossing and calculate the width
+		if (pixelLeft == -1)
+			return 0;
+		else if (pixelRight == -1)
+			return 30 - pixelLeft;
+		else
+			return pixelRight - pixelLeft;
 	}
 
 	/**
