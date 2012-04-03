@@ -269,7 +269,7 @@ public class Robot implements Steppable, Oriented2D {
 		if (pixelLeft == -1)
 			return 0;
 		else if (pixelRight == -1)
-			return 29;
+			return (pixelLeft + 29)/2;
 		else
 			return (pixelLeft + pixelRight)/2;
 	}
