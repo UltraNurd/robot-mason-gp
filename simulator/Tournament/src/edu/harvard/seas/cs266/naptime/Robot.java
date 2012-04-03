@@ -33,6 +33,11 @@ public class Robot implements Steppable, Oriented2D {
 	 * The speed (in units per step) of the robot's right motor.
 	 */
 	private double rightSpeed = 0.0;
+	
+	/**
+	 * The robot's current payload, if any.
+	 */
+	private Treat carrying = null;
 
 	/**
 	 * Increments the simulated state of this robot one time step.
@@ -57,26 +62,41 @@ public class Robot implements Steppable, Oriented2D {
 	 * @param field The current Tournament field containing this robot.
 	 */
 	private void sense(Continuous2D field) {
-		// Look for food in the camera's POV
+		// Look for food/goal in the camera's POV
 		updateCamera(field);
-		int foodMidpoint = findMidpointOfObjectiveInView();
+		int midpoint = findMidpointOfObjectiveInView();
 		
 		// Determine left/right offset to the objective
 		double baseSpeed = 0.1;
-		if (foodMidpoint < 15)
+		if (midpoint < 15)
 			// Turn right
 			setSpeed(baseSpeed, -baseSpeed);
-		else if (foodMidpoint > 15)
+		else if (midpoint > 15)
 			// Turn left
 			setSpeed(-baseSpeed, baseSpeed);
 		else {
-			// Straight ahead, so check if the objective is food-sized and immediately in front
-			if (findWidthOfObjectiveInView() < 13)
+			// Straight ahead, so check if the objective is correctly sized and immediately in front
+			if ((carrying == null && findWidthOfObjectiveInView() < 13) ||
+				(carrying != null && findWidthOfObjectiveInView() < 30))
 				// Move forward at full speed
 				setSpeed(2*baseSpeed, 2*baseSpeed);
-			else
+			else {
 				// Don't move
 				setSpeed(0, 0);
+				
+				// Pick up or drop off food
+				if (carrying == null) {
+					for (Object treat: camera)
+						if (treat != null) {
+							carrying = (Treat) treat;
+							break;
+						}
+				} else {
+					// Food is in goal, remove it from play
+					field.remove(carrying);
+					carrying = null;
+				}
+			}
 		}
 	}
 	
@@ -97,7 +117,8 @@ public class Robot implements Steppable, Oriented2D {
 		int minPixelLeft = 30;
 		int minPixelRight = -1;
 		for (Object objective: field.getAllObjects()) {
-			if (objective.getClass() == Treat.class) {
+			if ((carrying == null && objective.getClass() == Treat.class) ||
+				(carrying != null && objective.getClass() == Goal.class)) {
 				// Get the relative position vector for this objective
 				Double2D position = field.getObjectLocation(objective).subtract(current).rotate(-orientation);
 				
@@ -208,11 +229,13 @@ public class Robot implements Steppable, Oriented2D {
 			orientation += 2*Math.PI;
 		
 		// Update the position based on midpoint speed and new orientation
-		Double2D currentPosition = field.getObjectLocation(this);
 		double midpointSpeed = (rightSpeed + leftSpeed)/2;
-		Double2D newPosition = new Double2D(currentPosition.x + midpointSpeed*Math.cos(orientation),
-											currentPosition.y + midpointSpeed*Math.sin(orientation));
-		field.setObjectLocation(this, newPosition);
+		Double2D direction = new Double2D(Math.cos(orientation), Math.sin(orientation));
+		field.setObjectLocation(this, field.getObjectLocation(this).add(direction.multiply(midpointSpeed)));
+		
+		// If we're carrying something, update its position too
+		if (carrying != null)
+			field.setObjectLocation(carrying, field.getObjectLocation(this).add(direction.multiply((Robot.robotSize + Treat.treatSize)/2)));
 	}
 	
 	/**
