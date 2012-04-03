@@ -117,6 +117,7 @@ public class Robot implements Steppable, Oriented2D {
 					for (Object treat: camera)
 						if (treat != null) {
 							carrying = (Treat) treat;
+							carrying.carried = true;
 							break;
 						}
 				} else {
@@ -197,6 +198,10 @@ public class Robot implements Steppable, Oriented2D {
 		for (Object objective: field.getAllObjects()) {
 			if ((carrying == null && objective.getClass() == Treat.class) ||
 				(carrying != null && objective.getClass() == Goal.class)) {
+				// Make sure this treat isn't already being carried
+				if (objective.getClass() == Treat.class && ((Treat) objective).carried)
+					continue;
+				
 				// Get the relative position vector for this objective
 				Double2D position = field.getObjectLocation(objective).subtract(current).rotate(-orientation);
 				

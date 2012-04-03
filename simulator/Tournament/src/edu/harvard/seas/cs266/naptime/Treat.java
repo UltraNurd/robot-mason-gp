@@ -16,4 +16,9 @@ public class Treat {
 	 * The radius of the food-representing balls.
 	 */
 	public static final double treatSize = 4.0;
+	
+	/**
+	 * Whether or not this treat is currently in the possession of a robot.
+	 */
+	public Boolean carried = false;
 }
