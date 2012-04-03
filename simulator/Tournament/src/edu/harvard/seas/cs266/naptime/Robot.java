@@ -179,6 +179,22 @@ public class Robot implements Steppable, Oriented2D {
 	}
 
 	/**
+	 * Rudimentary accessor to expose the camera buffer to the inspector.
+	 * 
+	 * @return A string where '*' represents the object in view.
+	 */
+	public String getCamera() {
+		// Loop through the camera buffer, appending
+		String image = "";
+		for (Object pixel: camera)
+			if (pixel != null)
+				image += "*";
+			else
+				image += "-";
+		return image;
+	}
+	
+	/**
 	 * Uses the current speed to adjust the robot's position and orientation.
 	 */
 	private void move(Continuous2D field) {
