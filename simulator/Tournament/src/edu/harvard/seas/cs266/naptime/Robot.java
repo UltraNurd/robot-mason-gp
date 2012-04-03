@@ -19,6 +19,11 @@ public class Robot implements Steppable, Oriented2D {
 	private double orientation = 0.0;
 	
 	/**
+	 * The robot's current range sensor readings, arranged in 16 radial sectors.
+	 */
+	private double ranges[] = new double[16];
+	
+	/**
 	 * The robot's current "camera" view, a single line of 30 pixels, storing
 	 * references to the "seen" object.
 	 */
@@ -62,12 +67,35 @@ public class Robot implements Steppable, Oriented2D {
 	 * @param field The current Tournament field containing this robot.
 	 */
 	private void sense(Continuous2D field) {
+		// Define speed and range constants
+		final double baseSpeed = 0.1;
+		final double minRange = Robot.robotSize/2;
+		
+		// Look for obstacles near the robot and in front of it
+		updateRanges(field);
+		if (ranges[0] < minRange) {
+			// Back up
+			setSpeed(-2*baseSpeed, -2*baseSpeed);
+			return;
+		}
+		for (int r = 1; r < 5; r++)
+			if (ranges[r] < minRange) {
+				// Bank right
+				setSpeed(2*baseSpeed, -baseSpeed);
+				return;
+			}
+		for (int r = 12; r < 16; r++)
+			if (ranges[r] < minRange) {
+				// Bank left
+				setSpeed(-baseSpeed, 2*baseSpeed);
+				return;
+			}
+		
 		// Look for food/goal in the camera's POV
 		updateCamera(field);
 		int midpoint = findMidpointOfObjectiveInView();
 		
 		// Determine left/right offset to the objective
-		double baseSpeed = 0.1;
 		if (midpoint < 15)
 			// Turn right
 			setSpeed(baseSpeed, -baseSpeed);
@@ -77,7 +105,7 @@ public class Robot implements Steppable, Oriented2D {
 		else {
 			// Straight ahead, so check if the objective is correctly sized and immediately in front
 			if ((carrying == null && findWidthOfObjectiveInView() < 13) ||
-				(carrying != null && findWidthOfObjectiveInView() < 30))
+				(carrying != null && findWidthOfObjectiveInView() < 25))
 				// Move forward at full speed
 				setSpeed(2*baseSpeed, 2*baseSpeed);
 			else {
@@ -96,6 +124,38 @@ public class Robot implements Steppable, Oriented2D {
 					field.remove(carrying);
 					carrying = null;
 				}
+			}
+		}
+	}
+	
+	/**
+	 * Update the robot's internal range sensor readings with
+	 * the closest obstacles on all sides.
+	 */
+	private void updateRanges(Continuous2D field) {
+		// Get the robot's current location
+		Double2D current = field.getObjectLocation(this);
+		
+		// Reset the sensors
+		for (int r = 0; r < 16; r++)
+			ranges[r] = Double.MAX_VALUE;
+		
+		// Find the closest object to each sensor
+		for (Object obstacle: field.getAllObjects()) {
+			if (obstacle.getClass() == Robot.class && obstacle != this) {
+				// Get the relative position vector for this obstacle
+				Double2D position = field.getObjectLocation(obstacle).subtract(current).rotate(-orientation);
+				
+				// Get the angle to the obstacle
+				double obstacleAngle = Math.atan2(position.y, position.x);
+			
+				// Determine which sensor by which it would be seen
+				int sensor = (((int) Math.round(obstacleAngle*8/Math.PI)) + 16) % 16;
+				
+				// Update the closest obstacle
+				double distance = position.length() - Robot.robotSize;
+				if (distance < ranges[sensor])
+					ranges[sensor] = distance;
 			}
 		}
 	}
@@ -213,6 +273,16 @@ public class Robot implements Steppable, Oriented2D {
 			else
 				image += "-";
 		return image;
+	}
+	
+	public String getRanges() {
+		String rangeString = "";
+		for (double range: ranges)
+			if (range == Double.MAX_VALUE)
+				rangeString += "--";
+			else
+				rangeString += String.format("%.2f ", range);
+		return rangeString;
 	}
 	
 	/**
