@@ -214,9 +214,9 @@ public class Robot implements Steppable, Oriented2D {
 				// Get the relative position vector for this objective
 				Double2D position = field.getObjectLocation(objective).subtract(current).rotate(-orientation);
 				
-				// Make sure the objective is in view
+				// Make sure the objective is in front
 				double objectiveAngle = Math.atan2(position.y, position.x);
-				if (objectiveAngle < -Math.PI/6 || objectiveAngle > Math.PI/6)
+				if (objectiveAngle < -Math.PI/2 || objectiveAngle > Math.PI/2)
 					continue;
 				
 				// Project the object onto the camera's image plane
