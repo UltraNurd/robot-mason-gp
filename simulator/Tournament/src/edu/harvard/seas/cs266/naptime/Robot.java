@@ -164,7 +164,7 @@ public class Robot implements Steppable, Oriented2D {
 			if (ranges[r] == Double.MAX_VALUE) {
 				double sensorAngle = (orientation + r*Math.PI/8) % (2*Math.PI);
 				if (sensorAngle > Math.PI)
-					sensorAngle -= Math.PI;
+					sensorAngle -= 2*Math.PI;
 				if (sensorAngle >= -Math.PI/4 && sensorAngle < Math.PI/4)
 					ranges[r] = (field.getWidth() - current.x)/Math.cos(sensorAngle);
 				else if (sensorAngle >= Math.PI/4 && sensorAngle < 3*Math.PI/4)
