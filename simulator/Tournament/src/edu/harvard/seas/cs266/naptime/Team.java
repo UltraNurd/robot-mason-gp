@@ -12,7 +12,16 @@ public class Team implements Steppable {
 	 */
 	public Robot[] members = new Robot[3];
 	
+	/**
+	 * Our goal.
+	 */
+	public Goal goal;
+	
 	public Team(Continuous2D field) {
+		// Create a goal at our end of the field
+		goal = new Goal();
+		field.setObjectLocation(goal, new Double2D(0.0, field.getHeight()*0.5));
+		
 		// Position our robots in the field after creating them
 		for (int r = 0; r < members.length; r++)
 			members[r] = new Robot();
