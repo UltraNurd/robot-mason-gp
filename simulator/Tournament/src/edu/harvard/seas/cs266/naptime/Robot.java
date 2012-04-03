@@ -71,24 +71,36 @@ public class Robot implements Steppable, Oriented2D {
 		final double baseSpeed = 0.1;
 		final double minRange = Robot.robotSize/2;
 		
+		// Check if a carried object has dropped into the goal (based on proximity)
+		if (carrying != null) {
+			Double2D carriedPosition = field.getObjectLocation(carrying);
+			if (carriedPosition.x < 4 && carriedPosition.y > (field.getHeight() - Goal.goalSize + 4)/2 &&
+				carriedPosition.y < (field.getHeight() + Goal.goalSize - 4)/2) {
+				// Drop it
+				field.remove(carrying);
+				carrying = null;				
+			}
+		}
+		
 		// Look for obstacles near the robot and in front of it
+		Boolean obstacle = false;
 		updateRanges(field);
 		if (ranges[0] < minRange) {
 			// Back up
 			setSpeed(-2*baseSpeed, -2*baseSpeed);
-			return;
+			obstacle = true;
 		}
-		for (int r = 1; r < 5; r++)
-			if (ranges[r] < minRange) {
+		for (int r = 4; r > 0; r--)
+			if (!obstacle && ranges[r] < minRange) {
 				// Bank right proportionally
 				setSpeed((1 + 0.25*r)*baseSpeed, -baseSpeed);
-				return;
+				obstacle = true;
 			}
 		for (int r = 12; r < 16; r++)
-			if (ranges[r] < minRange) {
+			if (!obstacle && ranges[r] < minRange) {
 				// Bank left proportionally
 				setSpeed(-baseSpeed, (1 + 0.25*(16 - r))*baseSpeed);
-				return;
+				obstacle = true;
 			}
 		
 		// Look for food/goal in the camera's POV
@@ -96,19 +108,18 @@ public class Robot implements Steppable, Oriented2D {
 		int midpoint = findMidpointOfObjectiveInView();
 		
 		// Determine left/right offset to the objective
-		if ((carrying == null && midpoint < 15) || (carrying != null && midpoint < 8))
+		if (!obstacle && ((carrying == null && midpoint < 15) || (carrying != null && midpoint < 8)))
 			// Turn right
 			setSpeed(baseSpeed, -baseSpeed);
-		else if ((carrying == null && midpoint > 15) || (carrying != null && midpoint > 22))
+		else if (!obstacle && ((carrying == null && midpoint > 15) || (carrying != null && midpoint > 22)))
 			// Turn left
 			setSpeed(-baseSpeed, baseSpeed);
 		else {
 			// Straight ahead, so check if the objective is correctly sized and immediately in front
-			if ((carrying == null && findWidthOfObjectiveInView() < 13) ||
-				(carrying != null && findWidthOfObjectiveInView() < 28))
+			if (carrying != null || (!obstacle && findWidthOfObjectiveInView() < 13))
 				// Move forward at full speed
 				setSpeed(2*baseSpeed, 2*baseSpeed);
-			else {
+			else if (!obstacle) {
 				// Don't move
 				setSpeed(0, 0);
 				
@@ -120,10 +131,6 @@ public class Robot implements Steppable, Oriented2D {
 							carrying.carried = true;
 							break;
 						}
-				} else {
-					// Food is in goal, remove it from play
-					field.remove(carrying);
-					carrying = null;
 				}
 			}
 		}
