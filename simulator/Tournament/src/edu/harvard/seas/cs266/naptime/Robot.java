@@ -198,13 +198,15 @@ public class Robot implements Steppable, Oriented2D {
 		Double2D current = field.getObjectLocation(this);
 		
 		// Find the closest object of the specified type within the field of view
-		double minDistance = Double.MAX_VALUE;
-		Object minObjective = null;
-		int minPixelLeft = 30;
-		int minPixelRight = -1;
+		double[] depthBuffer = new double[30];
+		for (int pixel = 0; pixel < 30; pixel++) {
+			depthBuffer[pixel] = Double.MAX_VALUE;
+			camera[pixel] = null;
+		}
 		for (Object objective: field.getAllObjects()) {
 			if ((carrying == null && objective.getClass() == Treat.class) ||
-				(carrying != null && objective.getClass() == Goal.class)) {
+				(carrying != null && objective.getClass() == Goal.class) ||
+				objective.getClass() == Robot.class) {
 				// Make sure this treat isn't already being carried
 				if (objective.getClass() == Treat.class && ((Treat) objective).carried)
 					continue;
@@ -222,26 +224,31 @@ public class Robot implements Steppable, Oriented2D {
 				double imagePlaneLeft = (position.y - objectiveSize/2)*(robotSize/2)/position.x;
 				double imagePlaneRight = (position.y + objectiveSize/2)*(robotSize/2)/position.x;
 				int pixelLeft = (int) Math.round(imagePlaneLeft*30/imageWidth) + 14;
+				if (pixelLeft < 0)
+					pixelLeft = 0;
 				int pixelRight = (int) Math.round(imagePlaneRight*30/imageWidth) + 14;
+				if (pixelRight > 29)
+					pixelRight = 29;
 				
-				// Update the closest visible objective
+				// Update the depth buffer and camera where not obscured
 				double distance = position.length();
-				if (distance < minDistance) {
-					minDistance = distance;
-					minObjective = objective;
-					minPixelLeft = pixelLeft;
-					minPixelRight = pixelRight;
+				for (int pixel = pixelLeft; pixel <= pixelRight; pixel++) {
+					if (distance < depthBuffer[pixel]) {
+						depthBuffer[pixel] = distance;
+						camera[pixel] = objective.getClass() != Robot.class ? objective : null;
+					}
 				}
 			}
 		}
 		
-		// Update the camera view
+		// "segment" by removing all but the front-most object
+		double minDistance = Double.MAX_VALUE;
 		for (int pixel = 0; pixel < 30; pixel++)
-			if (pixel >= minPixelLeft && pixel <= minPixelRight) {
-				camera[pixel] = minObjective;
-			} else {
+			if (depthBuffer[pixel] < minDistance)
+				minDistance = depthBuffer[pixel];
+		for (int pixel = 0; pixel < 30; pixel++)
+			if (depthBuffer[pixel] != minDistance)
 				camera[pixel] = null;
-			}
 	}
 	
 	/**
