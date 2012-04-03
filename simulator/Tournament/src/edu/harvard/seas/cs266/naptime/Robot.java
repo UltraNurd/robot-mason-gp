@@ -96,16 +96,16 @@ public class Robot implements Steppable, Oriented2D {
 		int midpoint = findMidpointOfObjectiveInView();
 		
 		// Determine left/right offset to the objective
-		if (midpoint < 15)
+		if ((carrying == null && midpoint < 15) || (carrying != null && midpoint < 8))
 			// Turn right
 			setSpeed(baseSpeed, -baseSpeed);
-		else if (midpoint > 15)
+		else if ((carrying == null && midpoint > 15) || (carrying != null && midpoint > 22))
 			// Turn left
 			setSpeed(-baseSpeed, baseSpeed);
 		else {
 			// Straight ahead, so check if the objective is correctly sized and immediately in front
 			if ((carrying == null && findWidthOfObjectiveInView() < 13) ||
-				(carrying != null && findWidthOfObjectiveInView() < 25))
+				(carrying != null && findWidthOfObjectiveInView() < 28))
 				// Move forward at full speed
 				setSpeed(2*baseSpeed, 2*baseSpeed);
 			else {
@@ -206,8 +206,9 @@ public class Robot implements Steppable, Oriented2D {
 					continue;
 				
 				// Project the object onto the camera's image plane
-				double imagePlaneLeft = (position.y - Treat.treatSize/2)*(robotSize/2)/position.x;
-				double imagePlaneRight = (position.y + Treat.treatSize/2)*(robotSize/2)/position.x;
+				double objectiveSize = objective.getClass() == Goal.class ? Goal.goalSize : Treat.treatSize;
+				double imagePlaneLeft = (position.y - objectiveSize/2)*(robotSize/2)/position.x;
+				double imagePlaneRight = (position.y + objectiveSize/2)*(robotSize/2)/position.x;
 				int pixelLeft = (int) Math.round(imagePlaneLeft*30/imageWidth) + 14;
 				int pixelRight = (int) Math.round(imagePlaneRight*30/imageWidth) + 14;
 				
