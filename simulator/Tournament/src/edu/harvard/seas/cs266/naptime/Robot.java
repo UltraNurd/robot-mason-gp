@@ -102,21 +102,23 @@ public class Robot implements Steppable, Oriented2D {
 				setSpeed(-baseSpeed, (1 + 0.25*(16 - r))*baseSpeed);
 				obstacle = true;
 			}
+		if (obstacle)
+			return;
 		
 		// Look for food/goal in the camera's POV
 		updateCamera(field);
 		int midpoint = findMidpointOfObjectiveInView();
 		
 		// Determine left/right offset to the objective
-		if (!obstacle && ((carrying == null && midpoint < 15) || (carrying != null && midpoint < 8)))
+		if ((carrying == null && midpoint < 15) || (carrying != null && midpoint < 8))
 			// Turn right
 			setSpeed(baseSpeed, -baseSpeed);
-		else if (!obstacle && ((carrying == null && midpoint > 15) || (carrying != null && midpoint > 22)))
+		else if ((carrying == null && midpoint > 15) || (carrying != null && midpoint > 22))
 			// Turn left
 			setSpeed(-baseSpeed, baseSpeed);
 		else {
 			// Straight ahead, so check if the objective is correctly sized and immediately in front
-			if (carrying != null || (!obstacle && findWidthOfObjectiveInView() < 13))
+			if (carrying != null || findWidthOfObjectiveInView() < 13)
 				// Move forward at full speed
 				setSpeed(2*baseSpeed, 2*baseSpeed);
 			else if (!obstacle) {
