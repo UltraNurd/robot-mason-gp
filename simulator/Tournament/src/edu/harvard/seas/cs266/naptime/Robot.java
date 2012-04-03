@@ -147,7 +147,7 @@ public class Robot implements Steppable, Oriented2D {
 				Double2D position = field.getObjectLocation(obstacle).subtract(current).rotate(-orientation);
 				
 				// Get the angle to the obstacle
-				double obstacleAngle = Math.atan2(position.y, position.x);
+				double obstacleAngle = Math.atan2(-position.y, position.x);
 			
 				// Determine which sensor by which it would be seen
 				int sensor = (((int) Math.round(obstacleAngle*8/Math.PI)) + 16) % 16;
