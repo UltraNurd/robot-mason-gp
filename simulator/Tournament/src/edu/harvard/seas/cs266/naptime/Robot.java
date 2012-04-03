@@ -1,5 +1,8 @@
 package edu.harvard.seas.cs266.naptime;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.field.continuous.Continuous2D;
@@ -52,54 +55,72 @@ public class Robot implements Steppable, Oriented2D {
 	 * @param field The current Tournament field containing this robot.
 	 */
 	private void sense(Continuous2D field) {
-		// Get the robot's current location
-		Double2D current = field.getObjectLocation(this);
-		
-		// Find the nearest food
-		Bag neighbors = field.getNearestNeighbors(current, 3, false, false, true, null);
-		double minDistance = 2.0*Math.sqrt(Math.pow(field.getWidth(), 2.0) + Math.pow(field.getHeight(), 2.0));
-		Double2D objective = null;
-		for (Object neighbor : neighbors) {
-			if (neighbor.getClass() == Treat.class) {
-				Double2D neighborLocation = field.getObjectLocation(neighbor);
-				double distance = current.distance(neighborLocation);
-				if (distance < minDistance) {
-					minDistance = distance;
-					objective = neighborLocation;
-				}
-			}
-		}
-		if (objective == null) {
-			setSpeed(0.0, 0.0);
-			return;
-		}
-		
-		// Determine the distance to the objective
-		double distance = current.distance(objective);
-		
-		// Check if we're within epsilon of the objective
-		if (distance < 0.001) {
-			setSpeed(0.0, 0.0);
+		// Look for food in the camera's POV
+		List<Double> objective;
+		try {
+			objective = lookForObjective(field, Treat.class);
+		} catch (Exception e) {
+			e.printStackTrace();
 			return;
 		}
 		
 		// Determine the angle to the objective
 		double baseSpeed = 0.1;
-		double objectiveAngle = objective.subtract(current).angle() - orientation;
-		if (objectiveAngle < -baseSpeed/robotSize)
+		if (objective.get(0) < -baseSpeed/robotSize || objective.get(1) == Double.MAX_VALUE)
 			// Turn right
 			setSpeed(baseSpeed, -baseSpeed);
-		else if (objectiveAngle > baseSpeed/robotSize)
+		else if (objective.get(0) > baseSpeed/robotSize)
 			// Turn left
 			setSpeed(-baseSpeed, baseSpeed);
-		else if (distance > 2*baseSpeed)
+		else if (objective.get(1) > 2*baseSpeed + robotSize/2)
 			// Move forward at full speed
 			setSpeed(2*baseSpeed, 2*baseSpeed);
 		else
 			// Move to the objective (last step)
-			setSpeed(distance, distance);
+			setSpeed(objective.get(1) - robotSize/2, objective.get(1) - robotSize/2);
 	}
 	
+	private List<Double> lookForObjective(Continuous2D field, Class<Treat> targetClass) throws InstantiationException, IllegalAccessException {
+		// Get the robot's current location
+		Double2D current = field.getObjectLocation(this);
+		
+		// Generate the orientation vector
+		Double2D direction = new Double2D(Math.cos(orientation), Math.sin(orientation));
+		
+		// Find the closest object of the specified type within the field of view
+		double minDistance = Double.MAX_VALUE;
+		double angleToClosestObjective = 0.0;
+		for (Object objective: field.getAllObjects()) {
+			if (objective.getClass() == targetClass) {
+				// Get the normalized relative position vector for this object
+				Double2D position = field.getObjectLocation(objective).subtract(current).normalize();
+				
+				// Find the angle to the object
+				double dotLength = position.dot(direction);
+				double objectiveAngle = Math.acos(dotLength);
+				if (position.subtract(direction.resize(dotLength)).y < 0) {
+					objectiveAngle *= -1;
+				}
+				
+				// Check that the angle is within the POV
+				if (Math.abs(objectiveAngle) < Math.PI/6) {
+					// Update the closest objective
+					double distance = field.getObjectLocation(objective).distance(current);
+					if (distance < minDistance) {
+						minDistance = distance;
+						angleToClosestObjective = objectiveAngle;
+					}
+				}
+			}
+		}
+		
+		// Done
+		List<Double> toObjective = new ArrayList<Double>();
+		toObjective.add(angleToClosestObjective);
+		toObjective.add(minDistance);
+		return toObjective;
+	}
+
 	/**
 	 * Uses the current speed to adjust the robot's position and orientation.
 	 */
