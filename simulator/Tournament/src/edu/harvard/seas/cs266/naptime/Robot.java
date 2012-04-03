@@ -80,14 +80,14 @@ public class Robot implements Steppable, Oriented2D {
 		}
 		for (int r = 1; r < 5; r++)
 			if (ranges[r] < minRange) {
-				// Bank right
-				setSpeed(2*baseSpeed, -baseSpeed);
+				// Bank right proportionally
+				setSpeed((1 + 0.25*r)*baseSpeed, -baseSpeed);
 				return;
 			}
 		for (int r = 12; r < 16; r++)
 			if (ranges[r] < minRange) {
-				// Bank left
-				setSpeed(-baseSpeed, 2*baseSpeed);
+				// Bank left proportionally
+				setSpeed(-baseSpeed, (1 + 0.25*(16 - r))*baseSpeed);
 				return;
 			}
 		
