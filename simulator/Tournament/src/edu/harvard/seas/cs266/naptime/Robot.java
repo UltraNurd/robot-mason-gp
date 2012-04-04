@@ -221,10 +221,26 @@ public class Robot implements Steppable, Oriented2D {
 				if (objectiveAngle < -Math.PI/2 || objectiveAngle > Math.PI/2)
 					continue;
 				
-				// Project the object onto the camera's image plane
-				double objectiveSize = objective.getClass() == Goal.class ? Goal.goalSize : Treat.treatSize;
-				double imagePlaneLeft = (position.y - objectiveSize/2)*(robotSize/2)/position.x;
-				double imagePlaneRight = (position.y + objectiveSize/2)*(robotSize/2)/position.x;
+				// Determine the span of the object in the image plane
+				double imagePlaneLeft = 0, imagePlaneRight = 0;
+				if (objective.getClass() == Treat.class) {
+					// Treats are round, so edges are based on radius
+					imagePlaneLeft = (position.y - Treat.treatSize/2)*(robotSize/2)/position.x;
+					imagePlaneRight = (position.y + Treat.treatSize/2)*(robotSize/2)/position.x;				
+				} else if (objective.getClass() == Robot.class) {
+					// Robots are round, so edges are based on radius
+					imagePlaneLeft = (position.y - robotSize/2)*(robotSize/2)/position.x;
+					imagePlaneRight = (position.y + robotSize/2)*(robotSize/2)/position.x;				
+				} else if (objective.getClass() == Goal.class) {
+					// Goal is tall, so reproject each end
+					Double2D halfGoal = new Double2D(0, Goal.goalSize/2);
+					Double2D leftPost = field.getObjectLocation(objective).add(halfGoal).subtract(current).rotate(-orientation);
+					Double2D rightPost = field.getObjectLocation(objective).subtract(halfGoal).subtract(current).rotate(-orientation);
+					imagePlaneLeft = leftPost.y*(robotSize/2)/leftPost.x;
+					imagePlaneRight = rightPost.y*(robotSize/2)/rightPost.x;				
+				}
+				
+				// Convert into pixels
 				int pixelLeft = (int) Math.round(imagePlaneLeft*30/imageWidth) + 14;
 				if (pixelLeft < 0)
 					pixelLeft = 0;
