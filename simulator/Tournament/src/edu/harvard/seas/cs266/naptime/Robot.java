@@ -92,14 +92,14 @@ public class Robot implements Steppable, Oriented2D {
 		}
 		for (int r = 4; r > 0; r--)
 			if (!obstacle && ranges[r] < minRange) {
-				// Bank right proportionally
-				setSpeed((1 + 0.25*r)*baseSpeed, -baseSpeed);
+				// Bank left proportionally
+				setSpeed(-baseSpeed, (1 + 0.25*(16 - r))*baseSpeed);
 				obstacle = true;
 			}
 		for (int r = 12; r < 16; r++)
 			if (!obstacle && ranges[r] < minRange) {
-				// Bank left proportionally
-				setSpeed(-baseSpeed, (1 + 0.25*(16 - r))*baseSpeed);
+				// Bank right proportionally
+				setSpeed((1 + 0.25*r)*baseSpeed, -baseSpeed);
 				obstacle = true;
 			}
 		if (obstacle)
@@ -111,11 +111,11 @@ public class Robot implements Steppable, Oriented2D {
 		
 		// Determine left/right offset to the objective
 		if ((carrying == null && midpoint < 15) || (carrying != null && midpoint < 8))
-			// Turn right
-			setSpeed(baseSpeed, -baseSpeed);
-		else if ((carrying == null && midpoint > 15) || (carrying != null && midpoint > 22))
 			// Turn left
 			setSpeed(-baseSpeed, baseSpeed);
+		else if ((carrying == null && midpoint > 15) || (carrying != null && midpoint > 22))
+			// Turn right
+			setSpeed(baseSpeed, -baseSpeed);
 		else {
 			// Straight ahead, so check if the objective is correctly sized and immediately in front
 			if (carrying != null || findWidthOfObjectiveInView() < 13)
@@ -157,7 +157,7 @@ public class Robot implements Steppable, Oriented2D {
 				Double2D position = field.getObjectLocation(obstacle).subtract(current).rotate(-orientation);
 				
 				// Get the angle to the obstacle
-				double obstacleAngle = Math.atan2(-position.y, position.x);
+				double obstacleAngle = Math.atan2(position.y, position.x);
 			
 				// Determine which sensor by which it would be seen
 				int sensor = (((int) Math.round(obstacleAngle*8/Math.PI)) + 16) % 16;
@@ -178,13 +178,13 @@ public class Robot implements Steppable, Oriented2D {
 				if (sensorAngle >= -Math.PI/4 && sensorAngle < Math.PI/4)
 					ranges[r] = (field.getWidth() - current.x)/Math.cos(sensorAngle);
 				else if (sensorAngle >= Math.PI/4 && sensorAngle < 3*Math.PI/4)
-					ranges[r] = current.y/Math.cos(sensorAngle - Math.PI/2);
+					ranges[r] = (field.getHeight() - current.y)/Math.cos(sensorAngle - Math.PI/2);
 				else if (sensorAngle >= 3*Math.PI/4)
 					ranges[r] = current.x/Math.cos(sensorAngle - Math.PI);
 				else if (sensorAngle < -3*Math.PI/4)
 					ranges[r] = current.x/Math.cos(sensorAngle + Math.PI);
 				else if (sensorAngle >= -3*Math.PI/4 && sensorAngle < -Math.PI/4)
-					ranges[r] = (field.getHeight() - current.y)/Math.cos(sensorAngle + Math.PI/2);
+					ranges[r] = current.y/Math.cos(sensorAngle + Math.PI/2);
 			}
 	}
 	
@@ -346,7 +346,7 @@ public class Robot implements Steppable, Oriented2D {
 	 */
 	private void move(Continuous2D field) {
 		// Update the orientation based on relative wheel velocity
-		orientation += (rightSpeed - leftSpeed)/robotSize;
+		orientation -= (rightSpeed - leftSpeed)/robotSize;
 		
 		// Keep orientation in [-pi,pi] range even though Oriented2D mods correctly
 		if (orientation > Math.PI)
