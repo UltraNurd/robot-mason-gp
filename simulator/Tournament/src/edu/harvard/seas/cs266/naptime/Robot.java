@@ -261,9 +261,11 @@ public class Robot implements Steppable, Oriented2D {
 		
 		// "segment" by removing all but the front-most object
 		double minDistance = Double.MAX_VALUE;
-		for (int pixel = 0; pixel < 30; pixel++)
-			if (depthBuffer[pixel] < minDistance)
+		for (int pixel = 0; pixel < 30; pixel++) {
+			// Look for the closest unobscured non-robot
+			if (depthBuffer[pixel] < minDistance && camera[pixel] != null)
 				minDistance = depthBuffer[pixel];
+		}
 		for (int pixel = 0; pixel < 30; pixel++)
 			if (depthBuffer[pixel] != minDistance)
 				camera[pixel] = null;
