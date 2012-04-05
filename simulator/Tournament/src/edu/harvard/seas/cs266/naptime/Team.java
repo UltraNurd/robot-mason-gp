@@ -17,17 +17,29 @@ public class Team implements Steppable {
 	 */
 	public Goal goal;
 	
-	public Team(Continuous2D field) {
+	public Team(Continuous2D field, Boolean opposing) {
 		// Create a goal at our end of the field
 		goal = new Goal();
-		field.setObjectLocation(goal, new Double2D(0.0, field.getHeight()*0.5));
+		if (opposing)
+			field.setObjectLocation(goal, new Double2D(0.0, field.getHeight()*0.5));
+		else
+			field.setObjectLocation(goal, new Double2D(field.getWidth(), field.getHeight()*0.5));
 		
 		// Position our robots in the field after creating them
 		for (int r = 0; r < members.length; r++)
-			members[r] = new Robot();
-		field.setObjectLocation(members[0], new Double2D(field.getWidth()*0.2, field.getHeight()*0.2));
-		field.setObjectLocation(members[1], new Double2D(field.getWidth()*0.4, field.getHeight()*0.5));
-		field.setObjectLocation(members[2], new Double2D(field.getWidth()*0.2, field.getHeight()*0.8));
+			if (opposing)
+				members[r] = new Robot(Math.PI);
+			else
+				members[r] = new Robot(0.0);				
+		if (opposing) {
+			field.setObjectLocation(members[0], new Double2D(field.getWidth()*0.8, field.getHeight()*0.2));
+			field.setObjectLocation(members[1], new Double2D(field.getWidth()*0.6, field.getHeight()*0.5));
+			field.setObjectLocation(members[2], new Double2D(field.getWidth()*0.8, field.getHeight()*0.8));
+		} else {
+			field.setObjectLocation(members[0], new Double2D(field.getWidth()*0.2, field.getHeight()*0.2));
+			field.setObjectLocation(members[1], new Double2D(field.getWidth()*0.4, field.getHeight()*0.5));
+			field.setObjectLocation(members[2], new Double2D(field.getWidth()*0.2, field.getHeight()*0.8));			
+		}
 	}
 
 	@Override

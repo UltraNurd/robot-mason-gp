@@ -45,6 +45,15 @@ public class Robot implements Steppable, Oriented2D {
 	private Treat carrying = null;
 
 	/**
+	 * Sets up the robot with initial facing.
+	 * 
+	 * @param startAngle The robot's starting orientation
+	 */
+	public Robot(double startAngle) {
+		this.orientation = startAngle;
+	}
+	
+	/**
 	 * Increments the simulated state of this robot one time step.
 	 * 
 	 * @param state The current Tournament simulation.
