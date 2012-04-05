@@ -14,6 +14,11 @@ public class Robot implements Steppable, Oriented2D {
 	public static final double robotSize = 12.0;
 	
 	/**
+	 * The parent team of this robot.
+	 */
+	private Team parent = null;
+	
+	/**
 	 * The current facing of the robot. Its front is where the camera and kicker are.
 	 */
 	private double orientation = 0.0;
@@ -47,9 +52,11 @@ public class Robot implements Steppable, Oriented2D {
 	/**
 	 * Sets up the robot with initial facing.
 	 * 
+	 * @param team The team containing this robot.
 	 * @param startAngle The robot's starting orientation
 	 */
-	public Robot(double startAngle) {
+	public Robot(Team team, double startAngle) {
+		this.parent = team;
 		this.orientation = startAngle;
 	}
 	
@@ -83,7 +90,8 @@ public class Robot implements Steppable, Oriented2D {
 		// Check if a carried object has dropped into the goal (based on proximity)
 		if (carrying != null) {
 			Double2D carriedPosition = field.getObjectLocation(carrying);
-			if (carriedPosition.x < 4 && carriedPosition.y > (field.getHeight() - Goal.goalSize + 4)/2 &&
+			if ((carriedPosition.x < 4 || carriedPosition.x > field.getWidth() - 4) &&
+				carriedPosition.y > (field.getHeight() - Goal.goalSize + 4)/2 &&
 				carriedPosition.y < (field.getHeight() + Goal.goalSize - 4)/2) {
 				// Drop it
 				field.remove(carrying);
@@ -216,7 +224,7 @@ public class Robot implements Steppable, Oriented2D {
 		}
 		for (Object objective: field.getAllObjects()) {
 			if ((carrying == null && objective.getClass() == Treat.class) ||
-				(carrying != null && objective.getClass() == Goal.class) ||
+				(carrying != null && objective == parent.goal) ||
 				objective.getClass() == Robot.class) {
 				// Make sure this treat isn't already being carried
 				if (objective.getClass() == Treat.class && ((Treat) objective).carried)
@@ -243,17 +251,25 @@ public class Robot implements Steppable, Oriented2D {
 				} else if (objective.getClass() == Goal.class) {
 					// Goal is tall, so reproject each end
 					Double2D halfGoal = new Double2D(0, Goal.goalSize/2);
-					Double2D leftPost = field.getObjectLocation(objective).add(halfGoal).subtract(current).rotate(-orientation);
-					Double2D rightPost = field.getObjectLocation(objective).subtract(halfGoal).subtract(current).rotate(-orientation);
+					Double2D leftPost, rightPost;
+					if (field.getObjectLocation(objective).x == 0.0) {
+						leftPost = field.getObjectLocation(objective).add(halfGoal).subtract(current).rotate(-orientation);
+						rightPost = field.getObjectLocation(objective).subtract(halfGoal).subtract(current).rotate(-orientation);
+					} else {
+						leftPost = field.getObjectLocation(objective).subtract(halfGoal).subtract(current).rotate(-orientation);
+						rightPost = field.getObjectLocation(objective).add(halfGoal).subtract(current).rotate(-orientation);						
+					}
 					imagePlaneLeft = leftPost.y*(robotSize/2)/leftPost.x;
-					imagePlaneRight = rightPost.y*(robotSize/2)/rightPost.x;				
+					imagePlaneRight = rightPost.y*(robotSize/2)/rightPost.x;
 				}
 				
 				// Convert into pixels
 				int pixelLeft = (int) Math.round(imagePlaneLeft*30/imageWidth) + 14;
+				int pixelRight = (int) Math.round(imagePlaneRight*30/imageWidth) + 14;
+				
+				// Keep in bounds
 				if (pixelLeft < 0)
 					pixelLeft = 0;
-				int pixelRight = (int) Math.round(imagePlaneRight*30/imageWidth) + 14;
 				if (pixelRight > 29)
 					pixelRight = 29;
 				

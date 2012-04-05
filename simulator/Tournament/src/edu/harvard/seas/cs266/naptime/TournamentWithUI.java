@@ -92,7 +92,7 @@ public class TournamentWithUI extends GUIState {
 		fieldPortrayal.setField(tourney.field);
 		
 		// Define how to draw goals
-		fieldPortrayal.setPortrayalForClass(Goal.class, new ShapePortrayal2D(new double[] {0.0, 1.0, 1.0, 0.0}, new double[] {0.5*Goal.goalSize, 0.5*Goal.goalSize, -0.5*Goal.goalSize, -0.5*Goal.goalSize}, Color.blue, true));
+		fieldPortrayal.setPortrayalForClass(Goal.class, new ShapePortrayal2D(new double[] {-1.0, 1.0, 1.0, -1.0}, new double[] {0.5*Goal.goalSize, 0.5*Goal.goalSize, -0.5*Goal.goalSize, -0.5*Goal.goalSize}, Color.blue, true));
 		
 		// Define how to draw robots
 		fieldPortrayal.setPortrayalForClass(Robot.class, new OrientedPortrayal2D(new OvalPortrayal2D(Color.black, Robot.robotSize, false), 12, 6.0, Color.black));
