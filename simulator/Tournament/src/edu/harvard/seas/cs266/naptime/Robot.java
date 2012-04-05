@@ -91,8 +91,8 @@ public class Robot implements Steppable, Oriented2D {
 		if (carrying != null) {
 			Double2D carriedPosition = field.getObjectLocation(carrying);
 			if ((carriedPosition.x < 4 || carriedPosition.x > field.getWidth() - 4) &&
-				carriedPosition.y > (field.getHeight() - Goal.goalSize + 4)/2 &&
-				carriedPosition.y < (field.getHeight() + Goal.goalSize - 4)/2) {
+				carriedPosition.y > (field.getHeight() - Goal.goalSize)/2 &&
+				carriedPosition.y < (field.getHeight() + Goal.goalSize)/2) {
 				// Drop it
 				field.remove(carrying);
 				carrying = null;				
