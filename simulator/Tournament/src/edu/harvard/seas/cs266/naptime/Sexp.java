@@ -9,6 +9,7 @@ package edu.harvard.seas.cs266.naptime;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -18,7 +19,7 @@ import java.util.Scanner;
  * @author nward@fas.harvard.edu
  */
 public class Sexp {
-	private ArrayList<Object> children;
+	private List<Object> children;
 	
 	public Sexp(File sexpPath) throws FileNotFoundException, InvalidSexpException {
 		this(new Scanner(sexpPath, "UTF-8").useDelimiter("\\A").next());
@@ -86,6 +87,21 @@ public class Sexp {
 		
 		if (depth != 0)
 			throw new InvalidSexpException("Expression not terminated");
+	}
+	
+	public Boolean firstAtomEquals(String label) {
+		return children.size() > 0 && children.get(0).getClass() == String.class && ((String)children.get(0)).equals(label);
+	}
+	
+	public String getFirstAtom() {
+		if (children.size() > 0 && children.get(0).getClass() == String.class) {
+			return (String)children.get(0);
+		} else
+			return "";
+	}
+	
+	public List<Object> getChildrenAfterFirst() {
+		return children.subList(1, children.size());
 	}
 	
 	public String toString() {
