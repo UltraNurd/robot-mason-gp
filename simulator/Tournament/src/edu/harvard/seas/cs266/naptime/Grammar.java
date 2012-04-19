@@ -57,6 +57,8 @@ public class Grammar {
 			String name = sexp.getFirstAtom();
 			if (name.equals(""))
 				throw new InvalidSexpException("Expression did not start with atom");
+			else if (name.equals(NoOp.name))
+				return grammar.new NoOp(sexp);
 			else if (name.equals(Step.name))
 				return grammar.new Step(sexp);
 			else if (name.equals(If.name))
@@ -92,6 +94,26 @@ public class Grammar {
 		
 		public double getValue() {
 			return value;
+		}
+	}
+	
+	public class NoOp extends Expression {
+		public final static String name = "noop";
+		
+		public NoOp(Sexp sexp) throws InvalidSexpException {
+			super(sexp, name);
+			
+			if (sexp.getChildrenAfterFirst().size() != 0) {
+				throw new InvalidSexpException("noop takes no arguments (duh)");
+			}
+		}
+		
+		public Boolean eval() {
+			return true;
+		}
+		
+		public double getValue() {
+			return 0.0;
 		}
 	}
 	
