@@ -70,89 +70,34 @@ public class Robot implements Steppable, Oriented2D {
 		// Get the current simulation
 		Tournament tourney = (Tournament) state;
 		
-		// Determine where we are and how to move
-		sense(tourney.field);
-		
-		// Run the "motors" at their current speed settings
-		move(tourney.field);
-	}
-	
-	/**
-	 * View the current Tournament field and determine motor speeds.
-	 * 
-	 * @param field The current Tournament field containing this robot.
-	 */
-	private void sense(Continuous2D field) {
-		// Define speed and range constants
-		final double baseSpeed = 0.1;
-		final double minRange = Robot.robotSize/2;
-		
-		// Check if a carried object has dropped into the goal (based on proximity)
+		// Check if a carried object has dropped into the goal (based on proximity, kinda cheaty)
 		if (carrying != null) {
-			Double2D carriedPosition = field.getObjectLocation(carrying);
-			if ((carriedPosition.x < 4 || carriedPosition.x > field.getWidth() - 4) &&
-				carriedPosition.y > (field.getHeight() - Goal.goalSize)/2 &&
-				carriedPosition.y < (field.getHeight() + Goal.goalSize)/2) {
+			Double2D carriedPosition = tourney.field.getObjectLocation(carrying);
+			if ((carriedPosition.x < 4 || carriedPosition.x > tourney.field.getWidth() - 4) &&
+				carriedPosition.y > (tourney.field.getHeight() - Goal.goalSize)/2 &&
+				carriedPosition.y < (tourney.field.getHeight() + Goal.goalSize)/2) {
 				// Drop it
-				field.remove(carrying);
+				tourney.field.remove(carrying);
 				carrying = null;				
 			}
 		}
 		
-		// Look for obstacles near the robot and in front of it
-		Boolean obstacle = false;
-		updateRanges(field);
-		if (ranges[0] < minRange) {
-			// Back up
-			setSpeed(-2*baseSpeed, -2*baseSpeed);
-			obstacle = true;
-		}
-		for (int r = 4; r > 0; r--)
-			if (!obstacle && ranges[r] < minRange) {
-				// Bank left proportionally
-				setSpeed(-baseSpeed, (1 + 0.25*(16 - r))*baseSpeed);
-				obstacle = true;
-			}
-		for (int r = 12; r < 16; r++)
-			if (!obstacle && ranges[r] < minRange) {
-				// Bank right proportionally
-				setSpeed((1 + 0.25*r)*baseSpeed, -baseSpeed);
-				obstacle = true;
-			}
-		if (obstacle)
-			return;
+		// Update the sensor state
+		updateRanges(tourney.field);
+		updateCamera(tourney.field);
 		
-		// Look for food/goal in the camera's POV
-		updateCamera(field);
-		int midpoint = findMidpointOfObjectiveInView();
-		
-		// Determine left/right offset to the objective
-		if ((carrying == null && midpoint < 15) || (carrying != null && midpoint < 8))
-			// Turn left
-			setSpeed(-baseSpeed, baseSpeed);
-		else if ((carrying == null && midpoint > 15) || (carrying != null && midpoint > 22))
-			// Turn right
-			setSpeed(baseSpeed, -baseSpeed);
-		else {
-			// Straight ahead, so check if the objective is correctly sized and immediately in front
-			if (carrying != null || findWidthOfObjectiveInView() < 13)
-				// Move forward at full speed
-				setSpeed(2*baseSpeed, 2*baseSpeed);
-			else if (!obstacle) {
-				// Don't move
-				setSpeed(0, 0);
-				
-				// Pick up or drop off food
-				if (carrying == null) {
-					for (Object treat: camera)
-						if (treat != null) {
-							carrying = (Treat) treat;
-							carrying.carried = true;
-							break;
-						}
-				}
-			}
+		// Execute this robot's loaded step program (currently team-wide)
+		try {
+			parent.strategy.eval(this);
+		} catch (InvalidSexpException e) {
+			// Bad step program
+			System.err.println(e.getMessage());
+			System.err.println(parent.strategy.toString());
+			setSpeed(0.0, 0.0);
 		}
+		
+		// Run the "motors" at their current speed settings
+		move(tourney.field);
 	}
 	
 	/**

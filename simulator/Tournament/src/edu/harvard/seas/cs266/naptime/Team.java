@@ -1,5 +1,7 @@
 package edu.harvard.seas.cs266.naptime;
 
+import java.io.File;
+
 import sim.engine.SimState;
 import sim.engine.Steppable;
 import sim.field.continuous.Continuous2D;
@@ -7,6 +9,11 @@ import sim.util.Double2D;
 
 @SuppressWarnings("serial")
 public class Team implements Steppable {
+	/**
+	 * Our strategy step program.
+	 */
+	public Grammar.Step strategy;
+	
 	/**
 	 * Our robots.
 	 */
@@ -18,6 +25,20 @@ public class Team implements Steppable {
 	public Goal goal;
 	
 	public Team(Continuous2D field, Boolean opposing) {
+		// For now just hard-code the strategy loading
+		try {
+			Sexp sexp = new Sexp(new File("/Users/nward/Documents/Harvard/2012.01-05/CS266/project/steps/baseline.sexp"));
+			strategy = (Grammar.Step)Grammar.ExpressionFactory.build(sexp);
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+			try {
+				strategy = (Grammar.Step)Grammar.ExpressionFactory.build(new Sexp("(step)"));
+			} catch (InvalidSexpException ise) {
+				// This will never happen, but Java makes me do it
+				System.err.println(ise.getMessage());
+			}
+		}
+		
 		// Create a goal at our end of the field
 		goal = new Goal();
 		if (opposing)
