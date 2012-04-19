@@ -67,6 +67,16 @@ public class Grammar {
 				return grammar.new Or(sexp);
 			else if (name.equals(Not.name))
 				return grammar.new Not(sexp);
+			else if (name.equals(Equals.name))
+				return grammar.new Equals(sexp);
+			else if (name.equals(LessThan.name))
+				return grammar.new LessThan(sexp);
+			else if (name.equals(LessThanOrEquals.name))
+				return grammar.new LessThanOrEquals(sexp);
+			else if (name.equals(GreaterThan.name))
+				return grammar.new GreaterThan(sexp);
+			else if (name.equals(GreaterThanOrEquals.name))
+				return grammar.new GreaterThanOrEquals(sexp);
 			else
 				throw new InvalidSexpException(String.format("Unexpected expression name '%s'", name));
 		}
@@ -227,6 +237,86 @@ public class Grammar {
 		
 		public Boolean eval() throws InvalidSexpException {
 			return !expression.eval();
+		}
+	}
+	
+	public abstract class BinaryOperator extends Expression {
+		protected Expression left;
+		
+		protected Expression right;
+		
+		public BinaryOperator(Sexp sexp, String name) throws InvalidSexpException {
+			super(sexp, name);
+			
+			List<Object> contents = sexp.getChildrenAfterFirst();
+			
+			if (contents.size() != 2) {
+				throw new InvalidSexpException(String.format("%s is a binary operator", name));
+			}
+			
+			this.left = ExpressionFactory.build(contents.get(0));
+
+			this.right = ExpressionFactory.build(contents.get(1));
+		}
+	}
+	
+	public class Equals extends BinaryOperator {
+		public final static String name = "eq";
+		
+		public Equals(Sexp sexp) throws InvalidSexpException {
+			super(sexp, name);
+		}
+		
+		public Boolean eval() throws InvalidSexpException {
+			return left.getValue() == right.getValue();
+		}
+	}
+	
+	public class LessThan extends BinaryOperator {
+		public final static String name = "lt";
+		
+		public LessThan(Sexp sexp) throws InvalidSexpException {
+			super(sexp, name);
+		}
+		
+		public Boolean eval() throws InvalidSexpException {
+			return left.getValue() < right.getValue();
+		}
+	}
+
+	public class LessThanOrEquals extends BinaryOperator {
+		public final static String name = "lte";
+		
+		public LessThanOrEquals(Sexp sexp) throws InvalidSexpException {
+			super(sexp, name);
+		}
+		
+		public Boolean eval() throws InvalidSexpException {
+			return left.getValue() <= right.getValue();
+		}
+	}
+
+	public class GreaterThan extends BinaryOperator {
+		public final static String name = "gt";
+		
+		public GreaterThan(Sexp sexp) throws InvalidSexpException {
+			super(sexp, name);
+		}
+		
+		public Boolean eval() throws InvalidSexpException {
+			return left.getValue() > right.getValue();
+		}
+	}
+
+	public class GreaterThanOrEquals extends BinaryOperator {
+		public final static String name = "gte";
+		
+		public GreaterThanOrEquals(Sexp sexp) throws InvalidSexpException {
+			super(sexp, name);
+		}
+		
+		public Boolean eval() throws InvalidSexpException {
+			return left.getValue() >= right.getValue();
 		}
 	}
 }
