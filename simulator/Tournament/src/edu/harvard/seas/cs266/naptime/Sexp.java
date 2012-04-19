@@ -6,7 +6,10 @@
 
 package edu.harvard.seas.cs266.naptime;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 /**
  * Simple S-expression implementation that makes little distinction
@@ -16,6 +19,10 @@ import java.util.ArrayList;
  */
 public class Sexp {
 	private ArrayList<Object> children;
+	
+	public Sexp(File sexpPath) throws FileNotFoundException, InvalidSexpException {
+		this(new Scanner(sexpPath, "UTF-8").useDelimiter("\\A").next());
+	}
 	
 	public Sexp(String expression) throws InvalidSexpException {
 		// Initialize the child atoms/lists
