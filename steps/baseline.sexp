@@ -1,11 +1,11 @@
 (step
   (if
     (or
+      (if (lt (getRange 0) 6) (setSpeed -0.2 -0.2))
       (if (lt (getRange 4) 6) (setSpeed -0.1 0.1))
       (if (lt (getRange 3) 6) (setSpeed -0.1 0.125))
       (if (lt (getRange 2) 6) (setSpeed -0.1 0.15))
       (if (lt (getRange 1) 6) (setSpeed -0.1 0.175))
-      (if (lt (getRange 0) 6) (setSpeed -0.2 -0.2))
       (if (lt (getRange 15) 6) (setSpeed 0.175 -0.1))
       (if (lt (getRange 14) 6) (setSpeed 0.15 -0.1))
       (if (lt (getRange 13) 6) (setSpeed 0.125 -0.1))
