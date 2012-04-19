@@ -8,6 +8,10 @@ public class Grammar {
 	public abstract class Expression {
 		private Sexp sexp;
 		
+		public Expression(String value) throws InvalidSexpException {
+			this.sexp = new Sexp("(" + value + ")");
+		}
+		
 		public Expression(Sexp sexp, String name) throws InvalidSexpException {
 			// Make sure this is the correct S-expression
 			if (!sexp.firstAtomEquals(name))
@@ -21,13 +25,35 @@ public class Grammar {
 			return sexp.toString();
 		}
 		
-		public abstract Boolean eval();
+		/**
+		 * Expected to be overridden by logical expressions (boolean operators, comparisons, etc.)
+		 * @throws InvalidSexpException 
+		 */
+		public Boolean eval() throws InvalidSexpException {
+			throw new InvalidSexpException("Value expression used in logical context");
+		}
+		
+		/**
+		 * Expected to be overridden by real-valued expressions (literals, sensors, etc.)
+		 * @throws InvalidSexpException 
+		 */
+		public double getValue() throws InvalidSexpException {
+			throw new InvalidSexpException("Logical expression used in value context");
+		}
 	}
 	
 	public static class ExpressionFactory {
 		public final static Grammar grammar = new Grammar();
 		
-		public static Expression build(Sexp sexp) throws InvalidSexpException {
+		public static Expression build(Object input) throws InvalidSexpException {
+			Sexp sexp = null;
+			if (input.getClass() == String.class)
+				return grammar.new Literal((String)input);
+			else if (input.getClass() == Sexp.class)
+				sexp = (Sexp)input;
+			else
+				throw new InvalidSexpException("This is not an S-expression or atom");
+			
 			String name = sexp.getFirstAtom();
 			if (name.equals(""))
 				throw new InvalidSexpException("Expression did not start with atom");
@@ -43,6 +69,19 @@ public class Grammar {
 				return grammar.new Not(sexp);
 			else
 				throw new InvalidSexpException(String.format("Unexpected expression name '%s'", name));
+		}
+	}
+	
+	public class Literal extends Expression {
+		private double value;
+		
+		public Literal(String value) throws InvalidSexpException {
+			super(value);
+			this.value = Double.parseDouble(value);
+		}
+		
+		public double getValue() {
+			return value;
 		}
 	}
 	
@@ -63,7 +102,7 @@ public class Grammar {
 			}
 		}
 		
-		public Boolean eval() {
+		public Boolean eval() throws InvalidSexpException {
 			// Evaluate each expression in turn
 			Boolean success = true;
 			for (Expression step: steps) {
@@ -102,7 +141,7 @@ public class Grammar {
 			}
 		}
 		
-		public Boolean eval() {
+		public Boolean eval() throws InvalidSexpException {
 			if (predicate.eval()) {
 				return consequent.eval();
 			} else if (alternative != null) {
@@ -130,7 +169,7 @@ public class Grammar {
 			}
 		}
 		
-		public Boolean eval() {
+		public Boolean eval() throws InvalidSexpException {
 			// Evaluate each expression in turn, but short-circuit if one is false
 			for (Expression expression: expressions) {
 				if (!expression.eval()) {
@@ -158,7 +197,7 @@ public class Grammar {
 			}
 		}
 		
-		public Boolean eval() {
+		public Boolean eval() throws InvalidSexpException {
 			// Evaluate each expression in turn, but short-circuit once one is true
 			for (Expression expression: expressions) {
 				if (expression.eval()) {
@@ -186,7 +225,7 @@ public class Grammar {
 			expression = ExpressionFactory.build((Sexp)contents.get(0));
 		}
 		
-		public Boolean eval() {
+		public Boolean eval() throws InvalidSexpException {
 			return !expression.eval();
 		}
 	}
