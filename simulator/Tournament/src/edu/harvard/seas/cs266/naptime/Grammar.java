@@ -104,7 +104,7 @@ public class Grammar {
 			this.value = Double.parseDouble(value);
 		}
 		
-		public double getValue() {
+		public double getValue(Robot robot) {
 			return value;
 		}
 	}
@@ -120,11 +120,11 @@ public class Grammar {
 			}
 		}
 		
-		public Boolean eval() {
+		public Boolean eval(Robot robot) {
 			return true;
 		}
 		
-		public double getValue() {
+		public double getValue(Robot robot) {
 			return 0.0;
 		}
 	}
