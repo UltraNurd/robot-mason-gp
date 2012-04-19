@@ -29,7 +29,7 @@ public class Grammar {
 		 * Expected to be overridden by logical expressions (boolean operators, comparisons, etc.)
 		 * @throws InvalidSexpException 
 		 */
-		public Boolean eval() throws InvalidSexpException {
+		public Boolean eval(Robot robot) throws InvalidSexpException {
 			throw new InvalidSexpException("Value expression used in logical context");
 		}
 		
@@ -37,7 +37,7 @@ public class Grammar {
 		 * Expected to be overridden by real-valued expressions (literals, sensors, etc.)
 		 * @throws InvalidSexpException 
 		 */
-		public double getValue() throws InvalidSexpException {
+		public double getValue(Robot robot) throws InvalidSexpException {
 			throw new InvalidSexpException("Logical expression used in value context");
 		}
 	}
@@ -146,11 +146,11 @@ public class Grammar {
 			}
 		}
 		
-		public Boolean eval() throws InvalidSexpException {
+		public Boolean eval(Robot robot) throws InvalidSexpException {
 			// Evaluate each expression in turn
 			Boolean success = true;
 			for (Expression step: steps) {
-				success = step.eval() && success;
+				success = step.eval(robot) && success;
 			}
 			return success;
 		}
@@ -185,11 +185,11 @@ public class Grammar {
 			}
 		}
 		
-		public Boolean eval() throws InvalidSexpException {
-			if (predicate.eval()) {
-				return consequent.eval();
+		public Boolean eval(Robot robot) throws InvalidSexpException {
+			if (predicate.eval(robot)) {
+				return consequent.eval(robot);
 			} else if (alternative != null) {
-				return alternative.eval();
+				return alternative.eval(robot);
 			} else {
 				return false;
 			}
@@ -213,10 +213,10 @@ public class Grammar {
 			}
 		}
 		
-		public Boolean eval() throws InvalidSexpException {
+		public Boolean eval(Robot robot) throws InvalidSexpException {
 			// Evaluate each expression in turn, but short-circuit if one is false
 			for (Expression expression: expressions) {
-				if (!expression.eval()) {
+				if (!expression.eval(robot)) {
 					return false;
 				}
 			}
@@ -241,10 +241,10 @@ public class Grammar {
 			}
 		}
 		
-		public Boolean eval() throws InvalidSexpException {
+		public Boolean eval(Robot robot) throws InvalidSexpException {
 			// Evaluate each expression in turn, but short-circuit once one is true
 			for (Expression expression: expressions) {
-				if (expression.eval()) {
+				if (expression.eval(robot)) {
 					return true;
 				}
 			}
@@ -269,8 +269,8 @@ public class Grammar {
 			expression = ExpressionFactory.build((Sexp)contents.get(0));
 		}
 		
-		public Boolean eval() throws InvalidSexpException {
-			return !expression.eval();
+		public Boolean eval(Robot robot) throws InvalidSexpException {
+			return !expression.eval(robot);
 		}
 	}
 	
@@ -301,8 +301,8 @@ public class Grammar {
 			super(sexp, name);
 		}
 		
-		public Boolean eval() throws InvalidSexpException {
-			return left.getValue() == right.getValue();
+		public Boolean eval(Robot robot) throws InvalidSexpException {
+			return left.getValue(robot) == right.getValue(robot);
 		}
 	}
 	
@@ -313,8 +313,8 @@ public class Grammar {
 			super(sexp, name);
 		}
 		
-		public Boolean eval() throws InvalidSexpException {
-			return left.getValue() < right.getValue();
+		public Boolean eval(Robot robot) throws InvalidSexpException {
+			return left.getValue(robot) < right.getValue(robot);
 		}
 	}
 
@@ -325,8 +325,8 @@ public class Grammar {
 			super(sexp, name);
 		}
 		
-		public Boolean eval() throws InvalidSexpException {
-			return left.getValue() <= right.getValue();
+		public Boolean eval(Robot robot) throws InvalidSexpException {
+			return left.getValue(robot) <= right.getValue(robot);
 		}
 	}
 
@@ -337,8 +337,8 @@ public class Grammar {
 			super(sexp, name);
 		}
 		
-		public Boolean eval() throws InvalidSexpException {
-			return left.getValue() > right.getValue();
+		public Boolean eval(Robot robot) throws InvalidSexpException {
+			return left.getValue(robot) > right.getValue(robot);
 		}
 	}
 
@@ -349,8 +349,8 @@ public class Grammar {
 			super(sexp, name);
 		}
 		
-		public Boolean eval() throws InvalidSexpException {
-			return left.getValue() >= right.getValue();
+		public Boolean eval(Robot robot) throws InvalidSexpException {
+			return left.getValue(robot) >= right.getValue(robot);
 		}
 	}
 	
@@ -371,9 +371,8 @@ public class Grammar {
 			sensor = Integer.parseInt((String)contents.get(0));
 		}
 		
-		public double getValue() {
-			// Dummy for now
-			return 0.0;
+		public double getValue(Robot robot) {
+			return robot.getRange(sensor);
 		}
 	}
 	
@@ -398,8 +397,8 @@ public class Grammar {
 			this.right = Double.parseDouble((String)contents.get(1));
 		}
 
-		public Boolean eval() {
-			// Dummy for now
+		public Boolean eval(Robot robot) {
+			robot.setSpeed(left, right);
 			return true;
 		}
 	}
@@ -415,9 +414,8 @@ public class Grammar {
 			}
 		}
 		
-		public Boolean eval() {
-			// Dummy for now
-			return false;
+		public Boolean eval(Robot robot) {
+			return robot.isCarrying();
 		}
 	}
 	
@@ -432,9 +430,8 @@ public class Grammar {
 			}
 		}
 		
-		public double getValue() {
-			// Dummy for now
-			return 0.0;
+		public double getValue(Robot robot) {
+			return robot.findMidpointOfObjectiveInView();
 		}
 	}
 	
@@ -449,9 +446,8 @@ public class Grammar {
 			}
 		}
 		
-		public double getValue() {
-			// Dummy for now
-			return 0.0;
+		public double getValue(Robot robot) {
+			return robot.findWidthOfObjectiveInView();
 		}
 	}
 	
@@ -466,9 +462,8 @@ public class Grammar {
 			}
 		}
 		
-		public Boolean eval() {
-			// Dummy for now
-			return false;
+		public Boolean eval(Robot robot) {
+			return robot.pickUpObjective();
 		}
 	}
 }

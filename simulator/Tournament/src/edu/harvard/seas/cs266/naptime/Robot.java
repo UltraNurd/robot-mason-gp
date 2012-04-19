@@ -299,7 +299,7 @@ public class Robot implements Steppable, Oriented2D {
 	/**
 	 * Hacky method for finding the midpoint of the object in view.
 	 */
-	private int findMidpointOfObjectiveInView() {
+	public int findMidpointOfObjectiveInView() {
 		// Loop through the camera buffer, checking for object boundaries
 		int pixelLeft = -1;
 		int pixelRight = -1;
@@ -322,7 +322,7 @@ public class Robot implements Steppable, Oriented2D {
 	/**
 	 * Hacky method for finding the width of the object in view.
 	 */
-	private int findWidthOfObjectiveInView() {
+	public int findWidthOfObjectiveInView() {
 		// Loop through the camera buffer, checking for object boundaries
 		int pixelLeft = -1;
 		int pixelRight = -1;
@@ -401,6 +401,25 @@ public class Robot implements Steppable, Oriented2D {
 		leftSpeed = left;
 		rightSpeed = right;
 	}
+	
+	/**
+	 * Updates what the robot is carrying. Assumed to be called only
+	 * if there is something within range to be carried.
+	 * @return True on success, false otherwise (already carrying something,
+	 * not a treat, etc.).
+	 */
+	public Boolean pickUpObjective() {
+		// Pick up food if possible
+		if (carrying == null) {
+			for (Object treat: camera)
+				if (treat != null && treat.getClass() == Treat.class) {
+					carrying = (Treat) treat;
+					carrying.carried = true;
+					return true;
+				}
+		}
+		return false;
+	}
 
 	/**
 	 * Accessor for the robot's current facing. Implements the Oriented2D interface.
@@ -408,5 +427,24 @@ public class Robot implements Steppable, Oriented2D {
 	@Override
 	public double orientation2D() {
 		return orientation;
+	}
+
+	/**
+	 * Accessor for the robot's range sensors.
+	 * 
+	 * @param sensor Index into the robot's range sensor array. Positive clockwise.
+	 * @return The current distance to an obstacle as seen by the specified sensor.
+	 */
+	public double getRange(int sensor) {
+		return ranges[sensor];
+	}
+	
+	/**
+	 * Accessor for the robot's carrying status (not realistic).
+	 * 
+	 * @return True if the robot has something in its arms.
+	 */
+	public Boolean isCarrying() {
+		return carrying != null;
 	}
 }
