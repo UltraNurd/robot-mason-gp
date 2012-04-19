@@ -79,6 +79,18 @@ public class Grammar {
 				return grammar.new GreaterThan(sexp);
 			else if (name.equals(GreaterThanOrEquals.name))
 				return grammar.new GreaterThanOrEquals(sexp);
+			else if (name.equals(GetRange.name))
+				return grammar.new GetRange(sexp);
+			else if (name.equals(SetSpeed.name))
+				return grammar.new SetSpeed(sexp);
+			else if (name.equals(IsCarrying.name))
+				return grammar.new IsCarrying(sexp);
+			else if (name.equals(GetMidpointInCamera.name))
+				return grammar.new GetMidpointInCamera(sexp);
+			else if (name.equals(GetWidthInCamera.name))
+				return grammar.new GetWidthInCamera(sexp);
+			else if (name.equals(PickUp.name))
+				return grammar.new PickUp(sexp);
 			else
 				throw new InvalidSexpException(String.format("Unexpected expression name '%s'", name));
 		}
@@ -339,6 +351,124 @@ public class Grammar {
 		
 		public Boolean eval() throws InvalidSexpException {
 			return left.getValue() >= right.getValue();
+		}
+	}
+	
+	public class GetRange extends Expression {
+		public final static String name = "getRange";
+		
+		private int sensor;
+		
+		public GetRange(Sexp sexp) throws InvalidSexpException {
+			super(sexp, name);
+			
+			List<Object> contents = sexp.getChildrenAfterFirst();
+			
+			if (contents.size() != 1) {
+				throw new InvalidSexpException("getRange takes only one argument");
+			}
+			
+			sensor = Integer.parseInt((String)contents.get(0));
+		}
+		
+		public double getValue() {
+			// Dummy for now
+			return 0.0;
+		}
+	}
+	
+	public class SetSpeed extends Expression {
+		public final static String name = "setSpeed";
+		
+		private double left;
+		
+		private double right;
+		
+		public SetSpeed(Sexp sexp) throws InvalidSexpException {
+			super(sexp, name);
+			
+			List<Object> contents = sexp.getChildrenAfterFirst();
+			
+			if (contents.size() != 2) {
+				throw new InvalidSexpException("setSpeed takes two arguments");
+			}
+			
+			this.left = Double.parseDouble((String)contents.get(0));
+
+			this.right = Double.parseDouble((String)contents.get(1));
+		}
+
+		public Boolean eval() {
+			// Dummy for now
+			return true;
+		}
+	}
+	
+	public class IsCarrying extends Expression {
+		public final static String name = "isCarrying";
+		
+		public IsCarrying(Sexp sexp) throws InvalidSexpException {
+			super(sexp, name);
+			
+			if (sexp.getChildrenAfterFirst().size() != 0) {
+				throw new InvalidSexpException("isCarrying takes no arguments");
+			}
+		}
+		
+		public Boolean eval() {
+			// Dummy for now
+			return false;
+		}
+	}
+	
+	public class GetMidpointInCamera extends Expression {
+		public final static String name = "getMidpoint";
+		
+		public GetMidpointInCamera(Sexp sexp) throws InvalidSexpException {
+			super(sexp, name);
+			
+			if (sexp.getChildrenAfterFirst().size() != 0) {
+				throw new InvalidSexpException("getMidpoint takes no arguments");
+			}
+		}
+		
+		public double getValue() {
+			// Dummy for now
+			return 0.0;
+		}
+	}
+	
+	public class GetWidthInCamera extends Expression {
+		public final static String name = "getWidth";
+		
+		public GetWidthInCamera(Sexp sexp) throws InvalidSexpException {
+			super(sexp, name);
+			
+			if (sexp.getChildrenAfterFirst().size() != 0) {
+				throw new InvalidSexpException("getWidth takes no arguments");
+			}
+		}
+		
+		public double getValue() {
+			// Dummy for now
+			return 0.0;
+		}
+	}
+	
+	public class PickUp extends Expression {
+		public final static String name = "pickUp";
+		
+		public PickUp(Sexp sexp) throws InvalidSexpException {
+			super(sexp, name);
+			
+			if (sexp.getChildrenAfterFirst().size() != 0) {
+				throw new InvalidSexpException("pickUp takes no arguments");
+			}
+		}
+		
+		public Boolean eval() {
+			// Dummy for now
+			return false;
 		}
 	}
 }
