@@ -17,7 +17,7 @@
       (setSpeed -0.1 0.1)
       (if
         (or (and (not (isCarrying)) (gt (getMidpoint) 15))
-            (and (isCarrying) (gt (getMidpoint) 8)))
+            (and (isCarrying) (gt (getMidpoint) 22)))
         (setSpeed 0.1 -0.1)
         (if
           (or (isCarrying) (lt (getWidth) 13))
