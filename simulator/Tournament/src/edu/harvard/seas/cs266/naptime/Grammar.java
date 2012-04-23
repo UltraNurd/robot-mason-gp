@@ -287,6 +287,38 @@ public class Grammar {
 			}
 			return success;
 		}
+		
+		public List<Step> crossover(Step mate, MersenneTwisterFast generator) {
+			// Crossover at the S-expression level (easier)
+			Sexp sexp = (Sexp) toSexp();
+			Sexp mateSexp = (Sexp) mate.toSexp();
+			
+			// Find crossover points
+			Sexp crossover = sexp.selectRandomNode(generator, false, false);
+			Sexp mateCrossover = null;
+			String crossoverName = crossover.getFirstAtom();
+			if (crossoverName.equals(ValueNoOp.name) ||
+				crossoverName.equals(GetRange.name) ||
+				crossoverName.equals(GetMidpointInCamera.name) ||
+				crossoverName.equals(GetWidthInCamera.name))
+				mateCrossover = mateSexp.selectRandomNode(generator, false, true);
+			else
+				mateCrossover = mateSexp.selectRandomNode(generator, true, false);
+			
+			// Perform the crossover
+			Sexp.swap(crossover, mateCrossover);
+			
+			// Convert the offspring back to Steps
+			List<Step> children = new ArrayList<Step>(2);
+			try {
+				children.add(new Step(sexp));
+				children.add(new Step(mateSexp));
+			} catch (InvalidSexpException e) {
+				// This shouldn't happen
+				System.err.println(e.getMessage());
+			}
+			return children;
+		}
 	}
 	
 	public class If extends Expression {

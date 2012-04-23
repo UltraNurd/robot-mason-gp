@@ -135,11 +135,15 @@ public class Population {
 		if (fittestIndex != -1)
 			fittest = individuals.get(fittestIndex);
 		
-		// For now just mutate the parents
+		// Pairwise mate the parents, then mutate their offspring
+		List<Grammar.Step> children = new ArrayList<Grammar.Step>(individuals.size());
 		individuals.clear();
-		for (Grammar.Step parent: parents)
+		for (int i = 0; i < parents.size(); i += 2) {
+			children.addAll(parents.get(i).crossover(parents.get(i + 1), generator));
+		}
+		for (Grammar.Step child: children)
 			try {
-				individuals.add((Grammar.Step)Grammar.ExpressionFactory.build(parent.mutate(mutationRate, generator)));
+				individuals.add((Grammar.Step)Grammar.ExpressionFactory.build(child.mutate(mutationRate, generator)));
 			} catch (Exception e) {
 				// Shouldn't happen
 				System.err.println(e.getMessage());

@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import ec.util.MersenneTwisterFast;
+
 /**
  * Simple S-expression implementation that makes little distinction
  * between atoms/lists and doesn't handle quoting or comments.
@@ -122,6 +124,33 @@ public class Sexp {
 			throw new InvalidSexpException("Expression not terminated");
 	}
 	
+	public List<Sexp> flatten(Boolean booleanOnly, Boolean valueOnly) {
+		List<Sexp> flat = new ArrayList<Sexp>();
+		if (!firstAtomEquals(Grammar.Step.name))
+			if (firstAtomEquals(Grammar.ValueNoOp.name) ||
+				firstAtomEquals(Grammar.GetRange.name) ||
+				firstAtomEquals(Grammar.GetMidpointInCamera.name) ||
+				firstAtomEquals(Grammar.GetWidthInCamera.name)) {
+				if (!booleanOnly)
+					flat.add(this);
+			} else {
+				if (!valueOnly)
+					flat.add(this);
+			}
+		for (Object child: children)
+			if (child.getClass() == Sexp.class)
+				flat.addAll(((Sexp)child).flatten(booleanOnly, valueOnly));
+		return flat;
+	}
+	
+	public Sexp selectRandomNode(MersenneTwisterFast generator, Boolean mustBeBoolean, Boolean mustBeValue) {
+		// First, flatten this S-expression for convenient random selection, possibly filtering by expression name
+		List<Sexp> flat = flatten(mustBeBoolean, mustBeValue);
+		if (flat.size() == 0)
+			return null;
+		return flat.get(generator.nextInt(flat.size()));
+	}
+	
 	public Boolean firstAtomEquals(String label) {
 		return children.size() > 0 && children.get(0).getClass() == String.class && ((String)children.get(0)).equals(label);
 	}
@@ -155,5 +184,21 @@ public class Sexp {
 		}
 		pretty += indent + ")\n";
 		return pretty;
+	}
+	
+	public static void swap(Sexp left, Sexp right) {
+		// Make sure these are swappable (i.e. have parents)
+		if (left.parent == null || right.parent == null)
+			return;
+		
+		// Cache the current parents
+		Sexp leftParent = left.parent;
+		Sexp rightParent = right.parent;
+		
+		// Update children, then exchange parents
+		leftParent.children.set(leftParent.children.indexOf(left), right);
+		rightParent.children.set(rightParent.children.indexOf(right), left);
+		left.parent = rightParent;
+		right.parent = leftParent;
 	}
 }
