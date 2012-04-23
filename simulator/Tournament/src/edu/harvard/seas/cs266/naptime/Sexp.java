@@ -25,6 +25,25 @@ public class Sexp {
 		this(new Scanner(sexpPath, "UTF-8").useDelimiter("\\A").next());
 	}
 	
+	/**
+	 * Constructor for building S-expressions in-memory instead of parsing strings.
+	 * 
+	 * @param name The string function starting this expression; will become
+	 * the first element of children.
+	 * @param children Can be null. Will be appended to children.
+	 */
+	public Sexp(String name, List<Object> children) {
+		// Initialize the child atoms/lists
+		this.children = new ArrayList<Object>();
+		
+		// Insert the expression name
+		this.children.add(name);
+		
+		// If there are children, add them
+		if (children != null)
+			this.children.addAll(children);
+	}
+	
 	public Sexp(String expression) throws InvalidSexpException {
 		// Initialize the child atoms/lists
 		children = new ArrayList<Object>();

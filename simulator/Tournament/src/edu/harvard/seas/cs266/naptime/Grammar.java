@@ -6,25 +6,29 @@ import java.util.List;
 public class Grammar {
 
 	public abstract class Expression {
-		private Sexp sexp;
+		protected String name = "";
 		
-		public Expression(String value) throws InvalidSexpException {
-			this.sexp = new Sexp("(" + value + ")");
-		}
+		public Expression() { }
 		
 		public Expression(Sexp sexp, String name) throws InvalidSexpException {
 			// Make sure this is the correct S-expression
 			if (!sexp.firstAtomEquals(name))
 				throw new InvalidSexpException(String.format("Expected '%s', found '%s'", name, sexp.getFirstAtom()));
 			
-			// Store the original S-expression for reference
-			this.sexp = sexp;
+			// Store the expression name (used for deserialization)
+			this.name = name;
 		}
 		
 		public String toString() {
-			return sexp.toString();
+			return toSexp().toString();
 		}
 		
+		/**
+		 * Expected to be overridden by subclasses to produce unparsed
+		 * equivalent of their contents.
+		 */
+		public abstract Object toSexp();
+
 		/**
 		 * Expected to be overridden by logical expressions (boolean operators, comparisons, etc.)
 		 * @throws InvalidSexpException 
@@ -100,12 +104,20 @@ public class Grammar {
 		private double value;
 		
 		public Literal(String value) throws InvalidSexpException {
-			super(value);
 			this.value = Double.parseDouble(value);
 		}
 		
 		public double getValue(Robot robot) {
 			return value;
+		}
+		
+		public String toString() {
+			return Double.toString(value);
+		}
+
+		@Override
+		public Object toSexp() {
+			return toString();
 		}
 	}
 	
@@ -116,6 +128,11 @@ public class Grammar {
 			if (sexp.getChildrenAfterFirst().size() != 0) {
 				throw new InvalidSexpException(String.format("%s takes no arguments", name));
 			}
+		}
+
+		@Override
+		public Object toSexp() {
+			return new Sexp(name, null);
 		}
 	}
 	
@@ -148,6 +165,15 @@ public class Grammar {
 					throw new InvalidSexpException(String.format("Expected S-expression in %s, got atom", name));
 				}
 			}
+		}
+
+		@Override
+		public Object toSexp() {
+			// Convert and add each child expression
+			List<Object> children = new ArrayList<Object>();
+			for (Expression expression: this.expressions)
+				children.add(expression.toSexp());
+			return new Sexp(this.name, children);
 		}
 	}
 	
@@ -205,6 +231,17 @@ public class Grammar {
 			} else {
 				return false;
 			}
+		}
+
+		@Override
+		public Object toSexp() {
+			// Convert and add each child expression
+			List<Object> children = new ArrayList<Object>();
+			children.add(predicate.toSexp());
+			children.add(consequent.toSexp());
+			if (alternative != null)
+				children.add(alternative.toSexp());
+			return new Sexp(name, children);
 		}
 	}
 	
@@ -265,6 +302,13 @@ public class Grammar {
 		public Boolean eval(Robot robot) throws InvalidSexpException {
 			return !expression.eval(robot);
 		}
+
+		@Override
+		public Object toSexp() {
+			List<Object> children = new ArrayList<Object>();
+			children.add(expression.toSexp());
+			return new Sexp(name, children);
+		}
 	}
 	
 	public abstract class BinaryOperator extends Expression {
@@ -284,6 +328,15 @@ public class Grammar {
 			this.left = ExpressionFactory.build(contents.get(0));
 
 			this.right = ExpressionFactory.build(contents.get(1));
+		}
+
+		@Override
+		public Object toSexp() {
+			// Convert and add each child expression
+			List<Object> children = new ArrayList<Object>();
+			children.add(left.toSexp());
+			children.add(right.toSexp());
+			return new Sexp(this.name, children);
 		}
 	}
 	
@@ -367,6 +420,13 @@ public class Grammar {
 		public double getValue(Robot robot) {
 			return robot.getRange(sensor);
 		}
+
+		@Override
+		public Object toSexp() {
+			List<Object> children = new ArrayList<Object>();
+			children.add(Integer.toString(sensor));
+			return new Sexp(name, children);
+		}
 	}
 	
 	public class SetSpeed extends Expression {
@@ -393,6 +453,14 @@ public class Grammar {
 		public Boolean eval(Robot robot) {
 			robot.setSpeed(left, right);
 			return true;
+		}
+
+		@Override
+		public Object toSexp() {
+			List<Object> children = new ArrayList<Object>();
+			children.add(Double.toString(left));
+			children.add(Double.toString(right));
+			return new Sexp(name, children);
 		}
 	}
 	
