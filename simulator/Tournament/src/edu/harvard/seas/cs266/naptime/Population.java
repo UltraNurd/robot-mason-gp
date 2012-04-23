@@ -64,6 +64,7 @@ public class Population {
 		// Determine fitness by running the individual against the baseline
 		//   The body of this loop kinda reimplements SimState.doLoop()
 		//   @see MASON Manual pp. 83-84
+		double[] fitnesses = new double[individuals.size()];
 		for (Grammar.Step individual: individuals) {
 			// Set up the simulation with this strategy and give it a unique ID
 			Tournament tourney = new Tournament(seed, individual, baseline);
@@ -79,6 +80,8 @@ public class Population {
 			while (tourney.schedule.getSteps() < 20000);
 			
 			// Measure fitness and cleanup
+			double fitness = tourney.getFitness();
+			fitnesses[individuals.indexOf(individual)] = fitness;
 			tourney.finish();
 		}
 		

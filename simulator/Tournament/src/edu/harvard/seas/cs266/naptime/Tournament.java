@@ -48,6 +48,11 @@ public class Tournament extends SimState {
 	private Grammar.Step baselineStrategy;
 	
 	/**
+	 * The current score.
+	 */
+	public int[] score = new int[2];
+	
+	/**
 	 * Creates the simulation.
 	 * 
 	 * @param seed Seed for the simulation's RNG.
@@ -81,6 +86,9 @@ public class Tournament extends SimState {
 		// Clear the field of food and robots
 		field.clear();
 		
+		// Reset the scores
+		score[0] = score[1] = 0;
+		
 		// Add our team of robots to the field and activate them
 		Team team = new Team(field, false, strategy);
 		schedule.scheduleRepeating(team);
@@ -100,6 +108,21 @@ public class Tournament extends SimState {
 			Treat treat = new Treat();
 			field.setObjectLocation(treat, treatLocation);
 		}
+	}
+	
+	/**
+	 * Calculate a fitness based on number of treats collected. We want
+	 * the collection rate, with a bonus for collecting more than the
+	 * opposing team.
+	 */
+	public double getFitness() {
+		double collectionRate = ((double)score[0])/schedule.getSteps();
+		double opponentRatio;
+		if (score[1] == 0)
+			opponentRatio = nTreats;
+		else
+			opponentRatio = ((double)score[0])/score[1];
+		return collectionRate*opponentRatio;
 	}
 
 	/**

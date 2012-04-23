@@ -78,7 +78,10 @@ public class Robot implements Steppable, Oriented2D {
 				carriedPosition.y < (tourney.field.getHeight() + Goal.goalSize)/2) {
 				// Drop it
 				tourney.field.remove(carrying);
-				carrying = null;				
+				carrying = null;
+				
+				// Update the score
+				tourney.score[parent.opposing ? 1 : 0]++;
 			}
 		}
 		

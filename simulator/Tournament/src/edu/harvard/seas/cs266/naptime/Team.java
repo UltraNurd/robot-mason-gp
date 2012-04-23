@@ -10,6 +10,11 @@ import sim.util.Double2D;
 @SuppressWarnings("serial")
 public class Team implements Steppable {
 	/**
+	 * Which team are we?
+	 */
+	public Boolean opposing;
+	
+	/**
 	 * Our strategy step program.
 	 */
 	public Grammar.Step strategy;
@@ -25,6 +30,8 @@ public class Team implements Steppable {
 	public Goal goal;
 	
 	public Team(Continuous2D field, Boolean opposing, Grammar.Step strategy) {
+		this.opposing = opposing;
+		
 		if (strategy != null) {
 			this.strategy = strategy;
 		} else {
