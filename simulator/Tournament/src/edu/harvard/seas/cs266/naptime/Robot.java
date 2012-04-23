@@ -35,6 +35,12 @@ public class Robot implements Steppable, Oriented2D {
 	private Object camera[] = new Object[30];
 	
 	/**
+	 * The depth buffer used to calculate occlusion in the camera. Kept
+	 * around so we don't have to recalculate distances.
+	 */
+	double[] depthBuffer = new double[30];
+
+	/**
 	 * The speed (in units per step) of the robot's left motor.
 	 */
 	private double leftSpeed = 0.0;
@@ -179,7 +185,6 @@ public class Robot implements Steppable, Oriented2D {
 		Double2D current = field.getObjectLocation(this);
 		
 		// Find the closest object of the specified type within the field of view
-		double[] depthBuffer = new double[30];
 		for (int pixel = 0; pixel < 30; pixel++) {
 			depthBuffer[pixel] = Double.MAX_VALUE;
 			camera[pixel] = null;
@@ -365,17 +370,18 @@ public class Robot implements Steppable, Oriented2D {
 	}
 	
 	/**
-	 * Updates what the robot is carrying. Assumed to be called only
-	 * if there is something within range to be carried.
+	 * Updates what the robot is carrying.
+	 * 
 	 * @return True on success, false otherwise (already carrying something,
-	 * not a treat, etc.).
+	 * not a treat, treat out of range, etc.).
 	 */
 	public Boolean pickUpObjective() {
 		// Pick up food if possible
 		if (carrying == null) {
-			for (Object treat: camera)
-				if (treat != null && treat.getClass() == Treat.class) {
-					carrying = (Treat) treat;
+			for (int pixel = 0; pixel < 30; pixel++)
+				if (camera[pixel] != null && camera[pixel].getClass() == Treat.class &&
+				    depthBuffer[pixel] < Robot.robotSize*0.75) {
+					carrying = (Treat) camera[pixel];
 					carrying.carried = true;
 					return true;
 				}
