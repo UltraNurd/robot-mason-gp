@@ -36,6 +36,16 @@ public class Tournament extends SimState {
 	 * Initial count of food particles in the field (may get parameterized).
 	 */
 	public int nTreats = 20;
+
+	/**
+	 * Our team's individual strategy.
+	 */
+	private Grammar.Step strategy;
+	
+	/**
+	 * The opposing team's baseline strategy.
+	 */
+	private Grammar.Step baselineStrategy;
 	
 	/**
 	 * Creates the simulation.
@@ -44,6 +54,21 @@ public class Tournament extends SimState {
 	 */
 	public Tournament(long seed) {
 		super(seed);
+		strategy = null;
+		baselineStrategy = null;
+	}
+	
+	/**
+	 * Creates the simulation with a particular robot strategy.
+	 * 
+	 * @param seed Seed for the simulation's RNG.
+	 * @param strategy The strategy to be tested for fitness.
+	 * @param baselineStrategy The baseline strategy to compare against.
+	 */
+	public Tournament(long seed, Grammar.Step strategy, Grammar.Step baselineStrategy) {
+		super(seed);
+		this.strategy = strategy;
+		this.baselineStrategy = baselineStrategy;
 	}
 	
 	/**
@@ -57,11 +82,11 @@ public class Tournament extends SimState {
 		field.clear();
 		
 		// Add our team of robots to the field and activate them
-		Team team = new Team(field, false);
+		Team team = new Team(field, false, strategy);
 		schedule.scheduleRepeating(team);
 		
 		// Add the opposing team of robots to the field and activate them
-		Team opposingTeam = new Team(field, true);
+		Team opposingTeam = new Team(field, true, baselineStrategy);
 		schedule.scheduleRepeating(opposingTeam);
 		
 		// Add some randomly distributed food to the field

@@ -24,18 +24,22 @@ public class Team implements Steppable {
 	 */
 	public Goal goal;
 	
-	public Team(Continuous2D field, Boolean opposing) {
-		// For now just hard-code the strategy loading
-		try {
-			Sexp sexp = new Sexp(new File("/Users/nward/Documents/Harvard/2012.01-05/CS266/project/steps/baseline.sexp"));
-			strategy = (Grammar.Step)Grammar.ExpressionFactory.build(sexp);
-		} catch (Exception e) {
-			System.err.println(e.getMessage());
+	public Team(Continuous2D field, Boolean opposing, Grammar.Step strategy) {
+		if (strategy != null) {
+			this.strategy = strategy;
+		} else {
+			// Load the default strategy if none was specified
 			try {
-				strategy = (Grammar.Step)Grammar.ExpressionFactory.build(new Sexp("(step)"));
-			} catch (InvalidSexpException ise) {
-				// This will never happen, but Java makes me do it
-				System.err.println(ise.getMessage());
+				Sexp sexp = new Sexp(new File("/Users/nward/Documents/Harvard/2012.01-05/CS266/project/steps/baseline.sexp"));
+				this.strategy = (Grammar.Step)Grammar.ExpressionFactory.build(sexp);
+			} catch (Exception e) {
+				System.err.println(e.getMessage());
+				try {
+					this.strategy = (Grammar.Step)Grammar.ExpressionFactory.build(new Sexp("(step)"));
+				} catch (InvalidSexpException ise) {
+					// This will never happen, but Java makes me do it
+					System.err.println(ise.getMessage());
+				}
 			}
 		}
 		
