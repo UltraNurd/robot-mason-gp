@@ -77,6 +77,8 @@ public class Grammar {
 				throw new InvalidSexpException("Expression did not start with atom");
 			else if (name.equals(NoOp.name))
 				return grammar.new NoOp(sexp);
+			else if (name.equals(ValueNoOp.name))
+				return grammar.new ValueNoOp(sexp);
 			else if (name.equals(Step.name))
 				return grammar.new Step(sexp);
 			else if (name.equals(If.name))
@@ -171,10 +173,6 @@ public class Grammar {
 		public Boolean eval(Robot robot) {
 			return true;
 		}
-		
-		public double getValue(Robot robot) {
-			return 0.0;
-		}
 
 		@Override
 		public Object mutate(double rate, MersenneTwisterFast generator) {
@@ -183,9 +181,7 @@ public class Grammar {
 				final String[] names = {If.name, And.name, Or.name, Not.name,
 										Equals.name, LessThan.name, LessThanOrEquals.name,
 										GreaterThan.name, GreaterThanOrEquals.name,
-										GetRange.name, SetSpeed.name, IsCarrying.name,
-										GetMidpointInCamera.name, GetWidthInCamera.name,
-										PickUp.name};
+										SetSpeed.name, IsCarrying.name, PickUp.name};
 				String mutantName = names[generator.nextInt(names.length)];
 				List<Object> children = new ArrayList<Object>();
 				if (mutantName.equals(If.name) ||
@@ -200,14 +196,38 @@ public class Grammar {
 						 mutantName.equals(LessThanOrEquals.name) ||
 						 mutantName.equals(GreaterThan.name) ||
 						 mutantName.equals(GreaterThanOrEquals.name)) {
-					children.add(new Sexp(NoOp.name, null));
+					children.add(new Sexp(ValueNoOp.name, null));
 					children.add("0.0");
-				} else if (mutantName.equals(GetRange.name))
-					children.add("0");
-				else if (mutantName.equals(SetSpeed.name)) {
+				} else if (mutantName.equals(SetSpeed.name)) {
 					children.add("0.0");
 					children.add("0.0");
 				}
+				return new Sexp(mutantName, children);
+			} else
+				return toSexp();
+		}
+	}
+	
+	public class ValueNoOp extends LeafExpression {
+		public final static String name = "vnoop";
+		
+		public ValueNoOp(Sexp sexp) throws InvalidSexpException {
+			super(sexp, name);
+		}
+		
+		public double getValue(Robot robot) {
+			return 0.0;
+		}
+
+		@Override
+		public Object mutate(double rate, MersenneTwisterFast generator) {
+			// Much higher mutation rate, so we "grow" from no-ops
+			if (generator.nextDouble() < 0.5) {
+				final String[] names = {GetRange.name, GetMidpointInCamera.name, GetWidthInCamera.name};
+				String mutantName = names[generator.nextInt(names.length)];
+				List<Object> children = new ArrayList<Object>();
+				if (mutantName.equals(GetRange.name))
+					children.add("0");
 				return new Sexp(mutantName, children);
 			} else
 				return toSexp();
