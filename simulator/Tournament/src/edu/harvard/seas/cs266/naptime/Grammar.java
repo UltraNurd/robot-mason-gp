@@ -3,6 +3,8 @@ package edu.harvard.seas.cs266.naptime;
 import java.util.ArrayList;
 import java.util.List;
 
+import ec.util.MersenneTwisterFast;
+
 public class Grammar {
 
 	public abstract class Expression {
@@ -28,6 +30,15 @@ public class Grammar {
 		 * equivalent of their contents.
 		 */
 		public abstract Object toSexp();
+		
+		/**
+		 * Expected to be overridden by subclasses to produce unparsed
+		 * mutated version of their contents.
+		 * 
+		 * @param rate The probability that a given node mutates.
+		 * @param generator The seeded PRNG from the Tournament state.
+		 */
+		public abstract Object mutate(double rate, MersenneTwisterFast generator);
 
 		/**
 		 * Expected to be overridden by logical expressions (boolean operators, comparisons, etc.)
@@ -122,6 +133,17 @@ public class Grammar {
 		public Object toSexp() {
 			return toString();
 		}
+
+		@Override
+		public Object mutate(double rate, MersenneTwisterFast generator) {
+			if (generator.nextDouble() < rate)
+				if (value == 0.0)
+					return Double.toString(generator.nextDouble()*0.2 - 0.1);
+				else
+					return Double.toString(value*(generator.nextDouble() + 0.5));
+			else
+				return toSexp();
+		}
 	}
 	
 	public abstract class LeafExpression extends Expression {
@@ -153,6 +175,43 @@ public class Grammar {
 		public double getValue(Robot robot) {
 			return 0.0;
 		}
+
+		@Override
+		public Object mutate(double rate, MersenneTwisterFast generator) {
+			// Much higher mutation rate, so we "grow" from no-ops
+			if (generator.nextDouble() < 0.5) {
+				final String[] names = {If.name, And.name, Or.name, Not.name,
+										Equals.name, LessThan.name, LessThanOrEquals.name,
+										GreaterThan.name, GreaterThanOrEquals.name,
+										GetRange.name, SetSpeed.name, IsCarrying.name,
+										GetMidpointInCamera.name, GetWidthInCamera.name,
+										PickUp.name};
+				String mutantName = names[generator.nextInt(names.length)];
+				List<Object> children = new ArrayList<Object>();
+				if (mutantName.equals(If.name) ||
+					mutantName.equals(And.name) ||
+					mutantName.equals(Or.name)) {
+					children.add(new Sexp(NoOp.name, null));
+					children.add(new Sexp(NoOp.name, null));
+				} else if (mutantName.equals(Not.name))
+					children.add(new Sexp(NoOp.name, null));
+				else if (mutantName.equals(Equals.name) ||
+						 mutantName.equals(LessThan.name) ||
+						 mutantName.equals(LessThanOrEquals.name) ||
+						 mutantName.equals(GreaterThan.name) ||
+						 mutantName.equals(GreaterThanOrEquals.name)) {
+					children.add(new Sexp(NoOp.name, null));
+					children.add("0.0");
+				} else if (mutantName.equals(GetRange.name))
+					children.add("0");
+				else if (mutantName.equals(SetSpeed.name)) {
+					children.add("0.0");
+					children.add("0.0");
+				}
+				return new Sexp(mutantName, children);
+			} else
+				return toSexp();
+		}
 	}
 	
 	public abstract class ListExpression extends Expression {
@@ -176,6 +235,19 @@ public class Grammar {
 			List<Object> children = new ArrayList<Object>();
 			for (Expression expression: this.expressions)
 				children.add(expression.toSexp());
+			return new Sexp(this.name, children);
+		}
+		
+		@Override
+		public Object mutate(double rate, MersenneTwisterFast generator) {
+			List<Object> children = new ArrayList<Object>();
+			int deleteIndex = -1;
+			if (generator.nextDouble() < rate)
+				// Delete one child
+				deleteIndex = generator.nextInt(expressions.size());
+			for (Expression expression: expressions)
+				if (deleteIndex == -1 || expressions.indexOf(expression) != deleteIndex)
+					children.add(expression.mutate(rate, generator));
 			return new Sexp(this.name, children);
 		}
 	}
@@ -246,6 +318,37 @@ public class Grammar {
 				children.add(alternative.toSexp());
 			return new Sexp(name, children);
 		}
+
+		@Override
+		public Object mutate(double rate, MersenneTwisterFast generator) {
+			List<Object> children = new ArrayList<Object>();
+			children.add(predicate.mutate(rate, generator));
+			if (generator.nextDouble() < rate) {
+				if (generator.nextDouble() < 0.5) {
+					// Reverse condition
+					if (alternative != null) {
+						children.add(alternative.mutate(rate, generator));
+						children.add(consequent.mutate(rate, generator));
+					} else {
+						children.add(new Sexp(NoOp.name, null));
+						children.add(consequent.mutate(rate, generator));
+					}
+				} else {
+					// Add/delete alternative
+					if (alternative != null)
+						children.add(consequent.mutate(rate, generator));
+					else {
+						children.add(consequent.mutate(rate, generator));
+						children.add(new Sexp(NoOp.name, null));
+					}
+				}
+			} else {
+				children.add(consequent.mutate(rate, generator));
+				if (alternative != null)
+					children.add(alternative.mutate(rate, generator));
+			}
+			return new Sexp(name, children);
+		}
 	}
 	
 	public class And extends ListExpression {
@@ -312,6 +415,18 @@ public class Grammar {
 			children.add(expression.toSexp());
 			return new Sexp(name, children);
 		}
+
+		@Override
+		public Object mutate(double rate, MersenneTwisterFast generator) {
+			// Possibly negate
+			if (generator.nextDouble() < rate)
+				return expression.mutate(rate, generator);
+			else {
+				List<Object> children = new ArrayList<Object>();
+				children.add(expression.mutate(rate, generator));
+				return new Sexp(name, children);
+			}
+		}
 	}
 	
 	public abstract class BinaryOperator extends Expression {
@@ -340,6 +455,21 @@ public class Grammar {
 			children.add(left.toSexp());
 			children.add(right.toSexp());
 			return new Sexp(this.name, children);
+		}
+
+		@Override
+		public Object mutate(double rate, MersenneTwisterFast generator) {
+			// Possibly become a different binop
+			String mutantName = this.name;
+			if (generator.nextDouble() < rate) {
+				final String[] names = {Equals.name, LessThan.name, LessThanOrEquals.name,
+										GreaterThan.name, GreaterThanOrEquals.name};
+				mutantName = names[generator.nextInt(names.length)];
+			}
+			List<Object> children = new ArrayList<Object>();
+			children.add(left.mutate(rate, generator));
+			children.add(right.mutate(rate, generator));
+			return new Sexp(mutantName, children);
 		}
 	}
 	
@@ -430,6 +560,16 @@ public class Grammar {
 			children.add(Integer.toString(sensor));
 			return new Sexp(name, children);
 		}
+
+		@Override
+		public Object mutate(double rate, MersenneTwisterFast generator) {
+			if (generator.nextDouble() < rate) {
+				List<Object> children = new ArrayList<Object>();
+				children.add(Integer.toString(generator.nextInt(16)));
+				return new Sexp(name, children);
+			} else
+				return toSexp();
+		}
 	}
 	
 	public class SetSpeed extends Expression {
@@ -465,6 +605,23 @@ public class Grammar {
 			children.add(Double.toString(right));
 			return new Sexp(name, children);
 		}
+
+		@Override
+		public Object mutate(double rate, MersenneTwisterFast generator) {
+			if (generator.nextDouble() < rate) {
+				List<Object> children = new ArrayList<Object>();
+				if (left == 0.0)
+					children.add(Double.toString(generator.nextDouble()*0.2 - 0.1));
+				else
+					children.add(Double.toString(left*(generator.nextDouble() + 0.5)));
+				if (right == 0.0)
+					children.add(Double.toString(generator.nextDouble()*0.2 - 0.1));
+				else
+					children.add(Double.toString(right*(generator.nextDouble() + 0.5)));
+				return new Sexp(name, children);
+			} else
+				return toSexp();
+		}
 	}
 	
 	public class IsCarrying extends LeafExpression {
@@ -476,6 +633,12 @@ public class Grammar {
 		
 		public Boolean eval(Robot robot) {
 			return robot.isCarrying();
+		}
+
+		@Override
+		public Object mutate(double rate, MersenneTwisterFast generator) {
+			// For now, don't mutate this
+			return toSexp();
 		}
 	}
 	
@@ -489,6 +652,12 @@ public class Grammar {
 		public double getValue(Robot robot) {
 			return robot.findMidpointOfObjectiveInView();
 		}
+
+		@Override
+		public Object mutate(double rate, MersenneTwisterFast generator) {
+			// For now, don't mutate this
+			return toSexp();
+		}
 	}
 	
 	public class GetWidthInCamera extends LeafExpression {
@@ -501,6 +670,12 @@ public class Grammar {
 		public double getValue(Robot robot) {
 			return robot.findWidthOfObjectiveInView();
 		}
+
+		@Override
+		public Object mutate(double rate, MersenneTwisterFast generator) {
+			// For now, don't mutate this
+			return toSexp();
+		}
 	}
 	
 	public class PickUp extends LeafExpression {
@@ -512,6 +687,12 @@ public class Grammar {
 		
 		public Boolean eval(Robot robot) {
 			return robot.pickUpObjective();
+		}
+
+		@Override
+		public Object mutate(double rate, MersenneTwisterFast generator) {
+			// For now, don't mutate this
+			return toSexp();
 		}
 	}
 }

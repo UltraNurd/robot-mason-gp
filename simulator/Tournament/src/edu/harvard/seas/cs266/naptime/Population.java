@@ -31,6 +31,11 @@ public class Population {
 	private final static int size = 20;
 	
 	/**
+	 * The rate of mutation, as a probability [0.0, 1.0].
+	 */
+	private final static double mutationRate = 0.05;
+	
+	/**
 	 * The progenitor individual, presumably manually written.
 	 */
 	private Grammar.Step baseline;
@@ -60,7 +65,7 @@ public class Population {
 		// Start the population with the baseline plus some mutations
 		individuals.add(baseline);
 		for (int i = 1; i < size; i++) {
-			Grammar.Step strategy = (Grammar.Step)Grammar.ExpressionFactory.build(baseline);
+			Grammar.Step strategy = (Grammar.Step)Grammar.ExpressionFactory.build(baseline.mutate(mutationRate, (new Tournament(seed)).random));
 			individuals.add(strategy);
 		}
 	}
