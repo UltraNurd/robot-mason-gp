@@ -46,9 +46,9 @@ public class Population {
 	 * @throws InvalidSexpException 
 	 * @throws FileNotFoundException 
 	 */
-	public Population() throws FileNotFoundException, InvalidSexpException {
+	public Population(String strategyFile) throws FileNotFoundException, InvalidSexpException {
 		// For now, just hardcode the location of the manual strategy
-		Sexp sexp = new Sexp(new File("/Users/nward/Documents/Harvard/2012.01-05/CS266/project/steps/baseline.sexp"));
+		Sexp sexp = new Sexp(new File(strategyFile));
 		baseline = (Grammar.Step)Grammar.ExpressionFactory.build(sexp);
 		
 		// Start the population with the baseline
@@ -90,12 +90,18 @@ public class Population {
 	/**
 	 * Repeatedly runs simulation using genetic programming on robot strategies.
 	 * 
-	 * @param args Unused.
+	 * @param args Path to the baseline strategy S-expression file.
 	 */
 	public static void main(String[] args) {
+		// Check command-line parameters
+		if (args.length != 1) {
+			System.out.println("Usage: population <baseline strategy>");
+			System.exit(0);
+		}
+		
 		try {
 			// Set up population of individuals representing robot strategies
-			Population population = new Population();
+			Population population = new Population(args[0]);
 			
 			// Evolve once for testing purposes
 			population.evolve();
