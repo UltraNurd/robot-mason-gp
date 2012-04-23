@@ -131,6 +131,9 @@ public class Population {
 				summedFitness += fitnesses[j];
 			}
 		}
+		Grammar.Step fittest = null;
+		if (fittestIndex != -1)
+			fittest = individuals.get(fittestIndex);
 		
 		// For now just mutate the parents
 		individuals.clear();
@@ -146,9 +149,10 @@ public class Population {
 		generations++;
 		
 		// Return the current fittest individual
-		if (fittestIndex != -1)
-			return individuals.get(fittestIndex);
-		else
+		if (fittestIndex != -1) {
+			System.out.printf("Fittest: %d %x %f\n", fittestIndex, fittest.hashCode(), fitnesses[fittestIndex]);
+			return fittest;
+		} else
 			return null;
 	}
 	
