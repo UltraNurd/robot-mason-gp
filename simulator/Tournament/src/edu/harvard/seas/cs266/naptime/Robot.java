@@ -82,6 +82,19 @@ public class Robot implements Steppable, Oriented2D {
 			}
 		}
 		
+		// If we just dropped off the last piece of food, end the simulation prematurely
+		Boolean done = true;
+		for (Object treat: tourney.field.getAllObjects()) {
+			if (treat.getClass() == Treat.class) {
+				done = false;
+				break;
+			}
+		}
+		if (done) {
+			state.kill();
+			return;
+		}
+		
 		// Update the sensor state
 		updateRanges(tourney.field);
 		updateCamera(tourney.field);
