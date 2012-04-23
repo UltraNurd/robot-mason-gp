@@ -159,7 +159,7 @@ public class Grammar {
 
 		@Override
 		public Object toSexp() {
-			return new Sexp(name, null);
+			return new Sexp(name, new ArrayList<Object>());
 		}
 	}
 	
@@ -187,16 +187,16 @@ public class Grammar {
 				if (mutantName.equals(If.name) ||
 					mutantName.equals(And.name) ||
 					mutantName.equals(Or.name)) {
-					children.add(new Sexp(NoOp.name, null));
-					children.add(new Sexp(NoOp.name, null));
+					children.add(new Sexp(NoOp.name, new ArrayList<Object>()));
+					children.add(new Sexp(NoOp.name, new ArrayList<Object>()));
 				} else if (mutantName.equals(Not.name))
-					children.add(new Sexp(NoOp.name, null));
+					children.add(new Sexp(NoOp.name, new ArrayList<Object>()));
 				else if (mutantName.equals(Equals.name) ||
 						 mutantName.equals(LessThan.name) ||
 						 mutantName.equals(LessThanOrEquals.name) ||
 						 mutantName.equals(GreaterThan.name) ||
 						 mutantName.equals(GreaterThanOrEquals.name)) {
-					children.add(new Sexp(ValueNoOp.name, null));
+					children.add(new Sexp(ValueNoOp.name, new ArrayList<Object>()));
 					children.add("0.0");
 				} else if (mutantName.equals(SetSpeed.name)) {
 					children.add("0.0");
@@ -350,7 +350,7 @@ public class Grammar {
 						children.add(alternative.mutate(rate, generator));
 						children.add(consequent.mutate(rate, generator));
 					} else {
-						children.add(new Sexp(NoOp.name, null));
+						children.add(new Sexp(NoOp.name, new ArrayList<Object>()));
 						children.add(consequent.mutate(rate, generator));
 					}
 				} else {
@@ -359,7 +359,7 @@ public class Grammar {
 						children.add(consequent.mutate(rate, generator));
 					else {
 						children.add(consequent.mutate(rate, generator));
-						children.add(new Sexp(NoOp.name, null));
+						children.add(new Sexp(NoOp.name, new ArrayList<Object>()));
 					}
 				}
 			} else {

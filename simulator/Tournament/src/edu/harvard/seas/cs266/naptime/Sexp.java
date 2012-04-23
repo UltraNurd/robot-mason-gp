@@ -19,6 +19,8 @@ import java.util.Scanner;
  * @author nward@fas.harvard.edu
  */
 public class Sexp {
+	private Sexp parent;
+	
 	private List<Object> children;
 	
 	public Sexp(File sexpPath) throws FileNotFoundException, InvalidSexpException {
@@ -42,9 +44,19 @@ public class Sexp {
 		// If there are children, add them
 		if (children != null)
 			this.children.addAll(children);
+		for (Object child: children)
+			if (child.getClass() == Sexp.class)
+				((Sexp)child).parent = this;
 	}
 	
 	public Sexp(String expression) throws InvalidSexpException {
+		this(expression, (Sexp) null);
+	}
+	
+	public Sexp(String expression, Sexp parent) throws InvalidSexpException {
+		// Maintain links up the tree
+		this.parent = parent;
+		
 		// Initialize the child atoms/lists
 		children = new ArrayList<Object>();
 		
@@ -79,14 +91,14 @@ public class Sexp {
 				} else {
 					if (Character.isWhitespace(c)) {
 						if (token.charAt(0) == '(') {
-							children.add(new Sexp(token));
+							children.add(new Sexp(token, this));
 						} else {
 							children.add(token);
 						}
 						token = "";
 					} else if (c == ')') {
 						if (token.charAt(0) == '(') {
-							children.add(new Sexp(token));
+							children.add(new Sexp(token, this));
 						} else {
 							children.add(token);
 						}
