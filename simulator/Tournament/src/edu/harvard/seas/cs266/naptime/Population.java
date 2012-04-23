@@ -25,6 +25,12 @@ public class Population {
 	private final static long seed = 1333593072282L;
 	
 	/**
+	 * Number of individuals in the population at any given time. Must
+	 * be even for mating purposes.
+	 */
+	private final static int size = 20;
+	
+	/**
 	 * The progenitor individual, presumably manually written.
 	 */
 	private Grammar.Step baseline;
@@ -51,8 +57,12 @@ public class Population {
 		Sexp sexp = new Sexp(new File(strategyFile));
 		baseline = (Grammar.Step)Grammar.ExpressionFactory.build(sexp);
 		
-		// Start the population with the baseline
+		// Start the population with the baseline plus some mutations
 		individuals.add(baseline);
+		for (int i = 1; i < size; i++) {
+			Grammar.Step strategy = (Grammar.Step)Grammar.ExpressionFactory.build(baseline);
+			individuals.add(strategy);
+		}
 	}
 
 	/**
@@ -82,6 +92,7 @@ public class Population {
 			// Measure fitness and cleanup
 			double fitness = tourney.getFitness();
 			fitnesses[individuals.indexOf(individual)] = fitness;
+			//System.out.printf("%d %x %f\n", generations, individual.hashCode(), fitness);
 			tourney.finish();
 		}
 		

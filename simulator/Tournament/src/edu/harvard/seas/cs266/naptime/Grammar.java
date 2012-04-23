@@ -53,6 +53,9 @@ public class Grammar {
 			Sexp sexp = null;
 			if (input.getClass() == String.class)
 				return grammar.new Literal((String)input);
+			else if (input instanceof Expression)
+				// Lazy man's copy by serializing to S-expression and reparsing
+				return build(((Expression) input).toSexp());
 			else if (input.getClass() == Sexp.class)
 				sexp = (Sexp)input;
 			else
