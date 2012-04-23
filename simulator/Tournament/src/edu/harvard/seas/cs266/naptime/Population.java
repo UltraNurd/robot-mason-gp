@@ -8,6 +8,7 @@ package edu.harvard.seas.cs266.naptime;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -77,7 +78,7 @@ public class Population {
 	 * fitness of each individual, selects individuals for mating, performs
 	 * crossover between parent pairs, mutates children as needed.
 	 */
-	public void evolve() {
+	public Grammar.Step evolve() {
 		// Determine fitness by running the individual against the baseline
 		//   The body of this loop kinda reimplements SimState.doLoop()
 		//   @see MASON Manual pp. 83-84
@@ -103,13 +104,21 @@ public class Population {
 			tourney.finish();
 		}
 		
-		// Select individuals for reproduction
+		// Select individuals for reproduction and find the fittest individual in this generation
 		MersenneTwisterFast generator = (new Tournament(seed)).random;
-		double totalFitness = 0.0;
+		double totalFitness = 0.0, maxFitness = 0.0;
+		int fittestIndex = -1;
 		for (double fitness: fitnesses)
 			totalFitness += fitness;
 		List<Grammar.Step> parents = new ArrayList<Grammar.Step>(individuals.size());
 		for (int i = 0; i < individuals.size(); i++) {
+			// Check if this individual is the fittest
+			if (fitnesses[i] > maxFitness) {
+				maxFitness = fitnesses[i];
+				fittestIndex = i;
+			}
+			
+			// Randomly select an individual, weighted by fitness
 			double randomFitness = generator.nextDouble()*totalFitness;
 			double summedFitness = 0.0;
 			for (int j = 0; j < fitnesses.length; j++) {
@@ -135,6 +144,12 @@ public class Population {
 		
 		// Tick
 		generations++;
+		
+		// Return the current fittest individual
+		if (fittestIndex != -1)
+			return individuals.get(fittestIndex);
+		else
+			return null;
 	}
 	
 
@@ -145,8 +160,8 @@ public class Population {
 	 */
 	public static void main(String[] args) {
 		// Check command-line parameters
-		if (args.length != 1) {
-			System.out.println("Usage: population <baseline strategy>");
+		if (args.length != 2) {
+			System.out.println("Usage: population <baseline strategy> <fittest individual>");
 			System.exit(0);
 		}
 		
@@ -155,8 +170,17 @@ public class Population {
 			Population population = new Population(args[0]);
 			
 			// Evolve several times for testing purposes
+			Grammar.Step fittest = null;
 			for (int i = 0; i < 10; i++)
-				population.evolve();
+				fittest = population.evolve();
+			
+			// Dump the best evolved step, so we can see what they learned
+			if (fittest != null) {
+				PrintWriter writer = new PrintWriter(args[1]);
+				writer.print(fittest.toString());
+				writer.flush();
+				writer.close();
+			}
 		} catch (Exception e) {
 			System.err.println(e.getMessage());
 		}
