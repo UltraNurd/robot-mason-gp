@@ -262,7 +262,7 @@ public class Grammar {
 		public Object mutate(double rate, MersenneTwisterFast generator) {
 			List<Object> children = new ArrayList<Object>();
 			int deleteIndex = -1;
-			if (generator.nextDouble() < rate)
+			if (generator.nextDouble() < rate && expressions.size() > 0)
 				// Delete one child
 				deleteIndex = generator.nextInt(expressions.size());
 			for (Expression expression: expressions)
