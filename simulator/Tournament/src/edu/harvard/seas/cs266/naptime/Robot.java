@@ -106,10 +106,11 @@ public class Robot implements Steppable, Oriented2D {
 		try {
 			parent.strategy.eval(this);
 		} catch (InvalidSexpException e) {
-			// Bad step program
+			// Bad step program, stop simulating
 			System.err.println(e.getMessage());
 			System.err.println(parent.strategy.toString());
-			setSpeed(0.0, 0.0);
+			state.kill();
+			return;
 		}
 		
 		// Run the "motors" at their current speed settings
