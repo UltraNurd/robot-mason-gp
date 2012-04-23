@@ -7,6 +7,8 @@
 package edu.harvard.seas.cs266.naptime;
 
 import java.awt.Color;
+import java.io.File;
+
 import javax.swing.JFrame;
 
 import sim.display.Console;
@@ -142,8 +144,23 @@ public class TournamentWithUI extends GUIState {
 	 * @param args MASON command-line args which we don't use.
 	 */
 	public static void main(String[] args) {
-		TournamentWithUI ui = new TournamentWithUI();
-		Console console = new Console(ui);
-		console.setVisible(true);
+		// Check command-line parameters
+		if (args.length != 2) {
+			System.out.println("Usage: tournamentwithui <strategy> <opposing strategy>");
+			System.exit(0);
+		}
+		
+		try {
+			// Initialize the simulation state
+			Grammar.Step strategy = (Grammar.Step)Grammar.ExpressionFactory.build(new Sexp(new File(args[0])));
+			Grammar.Step opposingStrategy = (Grammar.Step)Grammar.ExpressionFactory.build(new Sexp(new File(args[1])));
+			Tournament tourney = new Tournament(Population.seed, strategy, opposingStrategy);
+		
+			TournamentWithUI ui = new TournamentWithUI(tourney);
+			Console console = new Console(ui);
+			console.setVisible(true);
+		} catch (Exception e) {
+			System.err.println(e.getMessage());
+		}
 	}
 }

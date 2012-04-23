@@ -25,7 +25,7 @@ public class Population {
 	 * The random seed we've been using, which governs consistent food
 	 * initial conditions.
 	 */
-	private final static long seed = 1333593072282L;
+	final static long seed = 1333593072282L;
 	
 	/**
 	 * Number of individuals in the population at any given time. Must
