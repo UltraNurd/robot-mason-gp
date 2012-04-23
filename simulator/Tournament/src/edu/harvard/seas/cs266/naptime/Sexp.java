@@ -73,6 +73,8 @@ public class Sexp {
 					}
 					if (c == '(') {
 						depth++;
+					} else if (c == ')') {
+						depth--;
 					}
 				} else {
 					if (Character.isWhitespace(c)) {
