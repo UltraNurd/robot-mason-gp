@@ -11,6 +11,8 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
+import ec.util.MersenneTwisterFast;
+
 /**
  * Represents our current genetic programming state, storing
  * some number of Step program trees.
@@ -101,6 +103,36 @@ public class Population {
 			tourney.finish();
 		}
 		
+		// Select individuals for reproduction
+		MersenneTwisterFast generator = (new Tournament(seed)).random;
+		double totalFitness = 0.0;
+		for (double fitness: fitnesses)
+			totalFitness += fitness;
+		List<Grammar.Step> parents = new ArrayList<Grammar.Step>(individuals.size());
+		for (int i = 0; i < individuals.size(); i++) {
+			double randomFitness = generator.nextDouble()*totalFitness;
+			double summedFitness = 0.0;
+			for (int j = 0; j < fitnesses.length; j++) {
+				if (summedFitness <= randomFitness && randomFitness < summedFitness + fitnesses[j]) {
+					Grammar.Step parent = individuals.get(j);
+					//System.out.printf("  Selected %d (%x)\n", j, parent.hashCode());
+					parents.add(parent);
+					break;
+				}
+				summedFitness += fitnesses[j];
+			}
+		}
+		
+		// For now just mutate the parents
+		individuals.clear();
+		for (Grammar.Step parent: parents)
+			try {
+				individuals.add((Grammar.Step)Grammar.ExpressionFactory.build(parent.mutate(mutationRate, generator)));
+			} catch (Exception e) {
+				// Shouldn't happen
+				System.err.println(e.getMessage());
+			}
+		
 		// Tick
 		generations++;
 	}
@@ -122,8 +154,9 @@ public class Population {
 			// Set up population of individuals representing robot strategies
 			Population population = new Population(args[0]);
 			
-			// Evolve once for testing purposes
-			population.evolve();
+			// Evolve several times for testing purposes
+			for (int i = 0; i < 10; i++)
+				population.evolve();
 		} catch (Exception e) {
 			System.err.println(e.getMessage());
 		}
