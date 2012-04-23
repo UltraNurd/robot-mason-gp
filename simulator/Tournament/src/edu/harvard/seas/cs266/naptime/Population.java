@@ -31,7 +31,7 @@ public class Population {
 	 * Number of individuals in the population at any given time. Must
 	 * be even for mating purposes.
 	 */
-	private final static int size = 20;
+	private final static int size = 40;
 	
 	/**
 	 * The rate of mutation, as a probability [0.0, 1.0].
