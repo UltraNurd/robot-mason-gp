@@ -109,15 +109,21 @@ public class Grammar {
 		}
 	}
 	
-	public class NoOp extends Expression {
+	public abstract class LeafExpression extends Expression {
+		public LeafExpression(Sexp sexp, String name) throws InvalidSexpException {
+			super(sexp, name);
+			
+			if (sexp.getChildrenAfterFirst().size() != 0) {
+				throw new InvalidSexpException(String.format("%s takes no arguments", name));
+			}
+		}
+	}
+	
+	public class NoOp extends LeafExpression {
 		public final static String name = "noop";
 		
 		public NoOp(Sexp sexp) throws InvalidSexpException {
 			super(sexp, name);
-			
-			if (sexp.getChildrenAfterFirst().size() != 0) {
-				throw new InvalidSexpException("noop takes no arguments (duh)");
-			}
 		}
 		
 		public Boolean eval(Robot robot) {
@@ -390,15 +396,11 @@ public class Grammar {
 		}
 	}
 	
-	public class IsCarrying extends Expression {
+	public class IsCarrying extends LeafExpression {
 		public final static String name = "isCarrying";
 		
 		public IsCarrying(Sexp sexp) throws InvalidSexpException {
 			super(sexp, name);
-			
-			if (sexp.getChildrenAfterFirst().size() != 0) {
-				throw new InvalidSexpException("isCarrying takes no arguments");
-			}
 		}
 		
 		public Boolean eval(Robot robot) {
@@ -406,15 +408,11 @@ public class Grammar {
 		}
 	}
 	
-	public class GetMidpointInCamera extends Expression {
+	public class GetMidpointInCamera extends LeafExpression {
 		public final static String name = "getMidpoint";
 		
 		public GetMidpointInCamera(Sexp sexp) throws InvalidSexpException {
 			super(sexp, name);
-			
-			if (sexp.getChildrenAfterFirst().size() != 0) {
-				throw new InvalidSexpException("getMidpoint takes no arguments");
-			}
 		}
 		
 		public double getValue(Robot robot) {
@@ -422,15 +420,11 @@ public class Grammar {
 		}
 	}
 	
-	public class GetWidthInCamera extends Expression {
+	public class GetWidthInCamera extends LeafExpression {
 		public final static String name = "getWidth";
 		
 		public GetWidthInCamera(Sexp sexp) throws InvalidSexpException {
 			super(sexp, name);
-			
-			if (sexp.getChildrenAfterFirst().size() != 0) {
-				throw new InvalidSexpException("getWidth takes no arguments");
-			}
 		}
 		
 		public double getValue(Robot robot) {
@@ -438,15 +432,11 @@ public class Grammar {
 		}
 	}
 	
-	public class PickUp extends Expression {
+	public class PickUp extends LeafExpression {
 		public final static String name = "pickUp";
 		
 		public PickUp(Sexp sexp) throws InvalidSexpException {
 			super(sexp, name);
-			
-			if (sexp.getChildrenAfterFirst().size() != 0) {
-				throw new InvalidSexpException("pickUp takes no arguments");
-			}
 		}
 		
 		public Boolean eval(Robot robot) {
