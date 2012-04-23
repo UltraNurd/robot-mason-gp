@@ -129,27 +129,33 @@ public class Grammar {
 		}
 	}
 	
-	public class Step extends Expression {
-		public final static String name = "step";
+	public abstract class ListExpression extends Expression {
+		protected List<Expression> expressions = new ArrayList<Expression>();
 		
-		private List<Expression> steps = new ArrayList<Expression>();
-		
-		public Step(Sexp sexp) throws InvalidSexpException {
+		public ListExpression(Sexp sexp, String name) throws InvalidSexpException {
 			super(sexp, name);
 			
 			for (Object child: sexp.getChildrenAfterFirst()) {
 				if (child.getClass() == Sexp.class) {
-					steps.add(ExpressionFactory.build((Sexp)child));
+					expressions.add(ExpressionFactory.build((Sexp)child));
 				} else {
-					throw new InvalidSexpException("Expected S-expression in step, got atom");
+					throw new InvalidSexpException(String.format("Expected S-expression in %s, got atom", name));
 				}
 			}
+		}
+	}
+	
+	public class Step extends ListExpression {
+		public final static String name = "step";
+		
+		public Step(Sexp sexp) throws InvalidSexpException {
+			super(sexp, name);
 		}
 		
 		public Boolean eval(Robot robot) throws InvalidSexpException {
 			// Evaluate each expression in turn
 			Boolean success = true;
-			for (Expression step: steps) {
+			for (Expression step: expressions) {
 				success = step.eval(robot) && success;
 			}
 			return success;
@@ -196,21 +202,11 @@ public class Grammar {
 		}
 	}
 	
-	public class And extends Expression {
+	public class And extends ListExpression {
 		public final static String name = "and";
-		
-		private List<Expression> expressions = new ArrayList<Expression>();
 		
 		public And(Sexp sexp) throws InvalidSexpException {
 			super(sexp, name);
-			
-			for (Object child: sexp.getChildrenAfterFirst()) {
-				if (child.getClass() == Sexp.class) {
-					expressions.add(ExpressionFactory.build((Sexp)child));
-				} else {
-					throw new InvalidSexpException("Expected S-expression in and, got atom");
-				}
-			}
 		}
 		
 		public Boolean eval(Robot robot) throws InvalidSexpException {
@@ -224,21 +220,12 @@ public class Grammar {
 		}
 	}
 	
-	public class Or extends Expression {
+	public class Or extends ListExpression {
 		public final static String name = "or";
-		
-		private List<Expression> expressions = new ArrayList<Expression>();
 		
 		public Or(Sexp sexp) throws InvalidSexpException {
 			super(sexp, name);
-			
-			for (Object child: sexp.getChildrenAfterFirst()) {
-				if (child.getClass() == Sexp.class) {
-					expressions.add(ExpressionFactory.build((Sexp)child));
-				} else {
-					throw new InvalidSexpException("Expected S-expression in or, got atom");
-				}
-			}
+
 		}
 		
 		public Boolean eval(Robot robot) throws InvalidSexpException {
