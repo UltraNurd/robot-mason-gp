@@ -353,6 +353,16 @@ public class Robot implements Steppable, Oriented2D {
 		Double2D direction = new Double2D(Math.cos(orientation), Math.sin(orientation));
 		field.setObjectLocation(this, field.getObjectLocation(this).add(direction.multiply(midpointSpeed)));
 		
+		// Check for collisions
+		for (Object obstacle: field.getObjectsWithinDistance(field.getObjectLocation(this), Robot.robotSize, false, true)) {
+			if (obstacle.getClass() == Robot.class) {
+				if (field.getObjectLocation(this).distance(field.getObjectLocation(obstacle)) < Robot.robotSize) {
+					// "Bounce" off the obstacle
+					field.setObjectLocation(this, field.getObjectLocation(obstacle).add(field.getObjectLocation(this).subtract(field.getObjectLocation(obstacle)).resize(Robot.robotSize)));
+				}
+			}
+		}
+		
 		// If we're carrying something, update its position too
 		if (carrying != null)
 			field.setObjectLocation(carrying, field.getObjectLocation(this).add(direction.multiply((Robot.robotSize + Treat.treatSize)/2)));
