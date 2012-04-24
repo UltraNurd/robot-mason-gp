@@ -135,6 +135,9 @@ public class Population {
 		if (fittestIndex != -1)
 			fittest = individuals.get(fittestIndex);
 		
+		// Dump some fitness stats for graphing
+		System.out.printf("%d\t%f\t%f\n", generations, totalFitness/individuals.size(), maxFitness);
+		
 		// Pairwise mate the parents, then mutate their offspring
 		List<Grammar.Step> children = new ArrayList<Grammar.Step>(individuals.size());
 		individuals.clear();
@@ -154,7 +157,7 @@ public class Population {
 		
 		// Return the current fittest individual
 		if (fittestIndex != -1) {
-			System.out.printf("Fittest: %d %x %f\n", fittestIndex, fittest.hashCode(), fitnesses[fittestIndex]);
+			//System.out.printf("Fittest: %d %x %f\n", fittestIndex, fittest.hashCode(), fitnesses[fittestIndex]);
 			return fittest;
 		} else
 			return null;
