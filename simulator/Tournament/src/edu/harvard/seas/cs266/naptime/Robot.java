@@ -365,8 +365,19 @@ public class Robot implements Steppable, Oriented2D {
 	 * @param right The desired speed of the right motor.
 	 */
 	protected void setSpeed(double left, double right) {
-		leftSpeed = left;
-		rightSpeed = right;
+		final double maxSpeed = 0.6;
+		if (left < -maxSpeed)
+			leftSpeed = -maxSpeed;
+		else if (left > maxSpeed)
+			leftSpeed = maxSpeed;
+		else
+			leftSpeed = left;
+		if (right < -maxSpeed)
+			rightSpeed = -maxSpeed;
+		else if (right > maxSpeed)
+			rightSpeed = maxSpeed;
+		else
+			rightSpeed = right;
 	}
 	
 	/**
