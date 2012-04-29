@@ -40,14 +40,19 @@ public class Population {
 	private final static double mutationRate = 0.05;
 	
 	/**
-	 * The progenitor individual, presumably manually written.
+	 * The comparison individual(s), presumably manually written.
 	 */
-	private Grammar.Step baseline;
+	private List<Grammar.Step> baseline = new ArrayList<Grammar.Step>();
+	
+	/**
+	 * The progenitor individual(s), presumably manually written.
+	 */
+	private List<Grammar.Step> progenitor = new ArrayList<Grammar.Step>();;
 	
 	/**
 	 * The current set of individuals in this population.
 	 */
-	private List<Grammar.Step> individuals = new ArrayList<Grammar.Step>();
+	private List<List<Grammar.Step>> individuals = new ArrayList<List<Grammar.Step>>();
 	
 	/**
 	 * The number of generations for which this population has evolved.
@@ -61,16 +66,28 @@ public class Population {
 	 * @throws InvalidSexpException 
 	 * @throws FileNotFoundException 
 	 */
-	public Population(String strategyFile) throws FileNotFoundException, InvalidSexpException {
-		// For now, just hardcode the location of the manual strategy
-		Sexp sexp = new Sexp(new File(strategyFile));
-		baseline = (Grammar.Step)Grammar.ExpressionFactory.build(sexp);
+	public Population(File baselinePath, File progenitorPath) throws FileNotFoundException, InvalidSexpException {
+		// Read the strategy files
+		if (baselinePath.isFile())
+			baseline.add((Grammar.Step)Grammar.ExpressionFactory.build(new Sexp(baselinePath)));
+		else
+			for (File strategyFile: baselinePath.listFiles())
+				baseline.add((Grammar.Step)Grammar.ExpressionFactory.build(new Sexp(strategyFile)));
+		if (progenitorPath.isFile())
+			progenitor.add((Grammar.Step)Grammar.ExpressionFactory.build(new Sexp(progenitorPath)));
+		else
+			for (File strategyFile: progenitorPath.listFiles())
+				progenitor.add((Grammar.Step)Grammar.ExpressionFactory.build(new Sexp(strategyFile)));
 		
-		// Start the population with the baseline plus some mutations
-		individuals.add(baseline);
+		// Start the population with the progenitors plus some mutations
+		individuals.add(progenitor);
 		for (int i = 1; i < size; i++) {
-			Grammar.Step strategy = (Grammar.Step)Grammar.ExpressionFactory.build(baseline.mutate(mutationRate, (new Tournament(seed)).random));
-			individuals.add(strategy);
+			List<Grammar.Step> teamStrategy = new ArrayList<Grammar.Step>();
+			for (Grammar.Step progenitorStrategy: progenitor) {
+				Grammar.Step strategy = (Grammar.Step)Grammar.ExpressionFactory.build(progenitorStrategy.mutate(mutationRate, (new Tournament(seed)).random));
+				teamStrategy.add(strategy);
+			}
+			individuals.add(teamStrategy);
 		}
 	}
 
@@ -79,14 +96,14 @@ public class Population {
 	 * fitness of each individual, selects individuals for mating, performs
 	 * crossover between parent pairs, mutates children as needed.
 	 */
-	public Grammar.Step evolve() {
+	public List<Grammar.Step> evolve() {
 		// Determine fitness by running the individual against the baseline
 		//   The body of this loop kinda reimplements SimState.doLoop()
 		//   @see MASON Manual pp. 83-84
 		double[] fitnesses = new double[individuals.size()];
-		for (Grammar.Step individual: individuals) {
+		for (List<Grammar.Step> individual: individuals) {
 			// Set up the simulation with this strategy and give it a unique ID
-			Tournament tourney = new Tournament(seed, Arrays.asList(new Grammar.Step[] {individual}), Arrays.asList(new Grammar.Step[] {baseline}));
+			Tournament tourney = new Tournament(seed, individual, baseline);
 			tourney.nameThread();
 			tourney.setJob(generations ^ individual.hashCode());
 			
@@ -111,7 +128,7 @@ public class Population {
 		int fittestIndex = -1;
 		for (double fitness: fitnesses)
 			totalFitness += fitness;
-		List<Grammar.Step> parents = new ArrayList<Grammar.Step>(individuals.size());
+		List<List<Grammar.Step>> parents = new ArrayList<List<Grammar.Step>>(individuals.size());
 		for (int i = 0; i < individuals.size(); i++) {
 			// Check if this individual is the fittest
 			if (fitnesses[i] > maxFitness) {
@@ -124,7 +141,7 @@ public class Population {
 			double summedFitness = 0.0;
 			for (int j = 0; j < fitnesses.length; j++) {
 				if (summedFitness <= randomFitness && randomFitness < summedFitness + fitnesses[j]) {
-					Grammar.Step parent = individuals.get(j);
+					List<Grammar.Step> parent = individuals.get(j);
 					//System.out.printf("  Selected %d (%x)\n", j, parent.hashCode());
 					parents.add(parent);
 					break;
@@ -132,7 +149,7 @@ public class Population {
 				summedFitness += fitnesses[j];
 			}
 		}
-		Grammar.Step fittest = null;
+		List<Grammar.Step> fittest = null;
 		if (fittestIndex != -1)
 			fittest = individuals.get(fittestIndex);
 		
@@ -140,14 +157,25 @@ public class Population {
 		System.out.printf("%d\t%f\t%f\n", generations, totalFitness/individuals.size(), maxFitness);
 		
 		// Pairwise mate the parents, then mutate their offspring
-		List<Grammar.Step> children = new ArrayList<Grammar.Step>(individuals.size());
+		List<List<Grammar.Step>> children = new ArrayList<List<Grammar.Step>>(individuals.size());
 		individuals.clear();
 		for (int i = 0; i < parents.size(); i += 2) {
-			children.addAll(parents.get(i).crossover(parents.get(i + 1), generator));
+			List<Grammar.Step> leftChild = new ArrayList<Grammar.Step>(progenitor.size());
+			List<Grammar.Step> rightChild = new ArrayList<Grammar.Step>(progenitor.size());
+			for (int j = 0; j < progenitor.size(); j++) {
+				List<Grammar.Step> siblings = parents.get(i).get(j).crossover(parents.get(i + 1).get(j), generator);
+				leftChild.add(siblings.get(0));
+				rightChild.add(siblings.get(1));
+			}
+			children.add(leftChild);
+			children.add(rightChild);
 		}
-		for (Grammar.Step child: children)
+		for (List<Grammar.Step> child: children)
 			try {
-				individuals.add((Grammar.Step)Grammar.ExpressionFactory.build(child.mutate(mutationRate, generator)));
+				List<Grammar.Step> mutant = new ArrayList<Grammar.Step>(child.size());
+				for (Grammar.Step member: child)
+					mutant.add((Grammar.Step)Grammar.ExpressionFactory.build(member.mutate(mutationRate, generator)));
+				individuals.add(mutant);
 			} catch (Exception e) {
 				// Shouldn't happen
 				System.err.println(e.getMessage());
@@ -172,26 +200,33 @@ public class Population {
 	 */
 	public static void main(String[] args) {
 		// Check command-line parameters
-		if (args.length != 2) {
-			System.out.println("Usage: population <baseline strategy> <fittest individual>");
+		if (args.length != 3) {
+			System.out.println("Usage: population <baseline strategy> <seed strategy> <fittest individual>");
 			System.exit(0);
 		}
 		
 		try {
 			// Set up population of individuals representing robot strategies
-			Population population = new Population(args[0]);
+			Population population = new Population(new File(args[0]), new File(args[1]));
 			
 			// Evolve several times for testing purposes
-			Grammar.Step fittest = null;
+			List<Grammar.Step> fittest = null;
 			for (int i = 0; i < 10; i++)
 				fittest = population.evolve();
 			
 			// Dump the best evolved step, so we can see what they learned
 			if (fittest != null) {
-				PrintWriter writer = new PrintWriter(args[1]);
-				writer.print(fittest.toString());
-				writer.flush();
-				writer.close();
+				File outputDir = new File(args[2]);
+				outputDir.mkdirs();
+				int index = 1;
+				for (Grammar.Step fittestMember: fittest) {
+					File outputFile = new File(outputDir, String.format("%d.sexp", index));
+					PrintWriter writer = new PrintWriter(outputFile.getPath());
+					writer.print(fittestMember.toString());
+					writer.flush();
+					writer.close();
+					index++;
+				}
 			}
 		} catch (Exception e) {
 			System.err.println(e.getMessage());
