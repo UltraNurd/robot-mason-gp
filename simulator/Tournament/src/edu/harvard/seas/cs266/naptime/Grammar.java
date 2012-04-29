@@ -323,7 +323,9 @@ public class Grammar {
 			if (crossoverName.equals(ValueNoOp.name) ||
 				crossoverName.equals(GetRange.name) ||
 				crossoverName.equals(GetMidpointInCamera.name) ||
-				crossoverName.equals(GetWidthInCamera.name))
+				crossoverName.equals(GetWidthInCamera.name) ||
+				crossoverName.equals(GetDistanceTraveled.name) ||
+				crossoverName.equals(GetRotations.name))
 				mateCrossover = mateSexp.selectRandomNode(generator, false, true);
 			else
 				mateCrossover = mateSexp.selectRandomNode(generator, true, false);
