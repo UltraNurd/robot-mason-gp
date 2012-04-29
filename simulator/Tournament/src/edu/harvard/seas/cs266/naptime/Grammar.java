@@ -198,7 +198,8 @@ public class Grammar {
 				final String[] names = {If.name, And.name, Or.name, Not.name,
 										Equals.name, LessThan.name, LessThanOrEquals.name,
 										GreaterThan.name, GreaterThanOrEquals.name,
-										SetSpeed.name, IsCarrying.name, PickUp.name};
+										SetSpeed.name, Drop.name, PickUp.name,
+										InState.name, SetState.name};
 				String mutantName = names[generator.nextInt(names.length)];
 				List<Object> children = new ArrayList<Object>();
 				if (mutantName.equals(If.name) ||
@@ -218,6 +219,10 @@ public class Grammar {
 				} else if (mutantName.equals(SetSpeed.name)) {
 					children.add("0.0");
 					children.add("0.0");
+				} else if (mutantName.equals(InState.name) ||
+						   mutantName.equals(SetState.name)) {
+					Robot.State[] values = Robot.State.values();
+					children.add(values[generator.nextInt(values.length)].toString().toLowerCase());
 				}
 				return new Sexp(mutantName, children);
 			} else
@@ -240,7 +245,8 @@ public class Grammar {
 		public Object mutate(double rate, MersenneTwisterFast generator) {
 			// Much higher mutation rate, so we "grow" from no-ops
 			if (generator.nextDouble() < 0.5) {
-				final String[] names = {GetRange.name, GetMidpointInCamera.name, GetWidthInCamera.name};
+				final String[] names = {GetRange.name, GetMidpointInCamera.name, GetWidthInCamera.name,
+										GetDistanceTraveled.name, GetRotations.name};
 				String mutantName = names[generator.nextInt(names.length)];
 				List<Object> children = new ArrayList<Object>();
 				if (mutantName.equals(GetRange.name))
