@@ -1,6 +1,7 @@
 package edu.harvard.seas.cs266.naptime;
 
 import java.io.File;
+import java.util.List;
 
 import sim.engine.SimState;
 import sim.engine.Steppable;
@@ -15,11 +16,6 @@ public class Team implements Steppable {
 	public Boolean opposing;
 	
 	/**
-	 * Our strategy step program.
-	 */
-	public Grammar.Step strategy;
-	
-	/**
 	 * Our robots.
 	 */
 	public Robot[] members = new Robot[3];
@@ -29,20 +25,18 @@ public class Team implements Steppable {
 	 */
 	public Goal goal;
 	
-	public Team(Continuous2D field, Boolean opposing, Grammar.Step strategy) {
+	public Team(Continuous2D field, Boolean opposing, List<Grammar.Step> strategy) {
 		this.opposing = opposing;
 		
-		if (strategy != null) {
-			this.strategy = strategy;
-		} else {
+		if (strategy.size() == 0) {
 			// Load the default strategy if none was specified
 			try {
 				Sexp sexp = new Sexp(new File("/Users/nward/Documents/Harvard/2012.01-05/CS266/project/steps/baseline.sexp"));
-				this.strategy = (Grammar.Step)Grammar.ExpressionFactory.build(sexp);
+				strategy.add((Grammar.Step)Grammar.ExpressionFactory.build(sexp));
 			} catch (Exception e) {
 				System.err.println(e.getMessage());
 				try {
-					this.strategy = (Grammar.Step)Grammar.ExpressionFactory.build(new Sexp("(step)"));
+					strategy.add((Grammar.Step)Grammar.ExpressionFactory.build(new Sexp("(step)")));
 				} catch (InvalidSexpException ise) {
 					// This will never happen, but Java makes me do it
 					System.err.println(ise.getMessage());
@@ -60,9 +54,9 @@ public class Team implements Steppable {
 		// Position our robots in the field after creating them
 		for (int r = 0; r < members.length; r++)
 			if (opposing)
-				members[r] = new Robot(this, Math.PI);
+				members[r] = new Robot(strategy.get(r % strategy.size()), this, Math.PI);
 			else
-				members[r] = new Robot(this, 0.0);				
+				members[r] = new Robot(strategy.get(r % strategy.size()), this, 0.0);				
 		if (opposing) {
 			field.setObjectLocation(members[0], new Double2D(field.getWidth()*0.8, field.getHeight()*0.2));
 			field.setObjectLocation(members[1], new Double2D(field.getWidth()*0.6, field.getHeight()*0.5));

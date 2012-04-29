@@ -6,6 +6,9 @@
 
 package edu.harvard.seas.cs266.naptime;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import sim.engine.SimState;
 import sim.field.continuous.Continuous2D;
 import sim.util.Double2D;
@@ -38,14 +41,14 @@ public class Tournament extends SimState {
 	public int nTreats = 20;
 
 	/**
-	 * Our team's individual strategy.
+	 * Our team's strategy.
 	 */
-	private Grammar.Step strategy;
+	private List<Grammar.Step> strategy;
 	
 	/**
 	 * The opposing team's baseline strategy.
 	 */
-	private Grammar.Step baselineStrategy;
+	private List<Grammar.Step> baselineStrategy;
 	
 	/**
 	 * The current score.
@@ -59,8 +62,8 @@ public class Tournament extends SimState {
 	 */
 	public Tournament(long seed) {
 		super(seed);
-		strategy = null;
-		baselineStrategy = null;
+		strategy = new ArrayList<Grammar.Step>();
+		baselineStrategy = new ArrayList<Grammar.Step>();
 	}
 	
 	/**
@@ -68,12 +71,12 @@ public class Tournament extends SimState {
 	 * 
 	 * @param seed Seed for the simulation's RNG.
 	 * @param strategy The strategy to be tested for fitness.
-	 * @param baselineStrategy The baseline strategy to compare against.
+	 * @param opposingStrategy The baseline strategy to compare against.
 	 */
-	public Tournament(long seed, Grammar.Step strategy, Grammar.Step baselineStrategy) {
+	public Tournament(long seed, List<Grammar.Step> strategy, List<Grammar.Step> opposingStrategy) {
 		super(seed);
 		this.strategy = strategy;
-		this.baselineStrategy = baselineStrategy;
+		this.baselineStrategy = opposingStrategy;
 	}
 	
 	/**

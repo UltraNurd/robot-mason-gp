@@ -8,6 +8,8 @@ package edu.harvard.seas.cs266.naptime;
 
 import java.awt.Color;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.swing.JFrame;
 
@@ -151,9 +153,23 @@ public class TournamentWithUI extends GUIState {
 		}
 		
 		try {
+			// Read the strategy files
+			File strategyPath = new File(args[0]);
+			List<Grammar.Step> strategy = new ArrayList<Grammar.Step>();
+			if (strategyPath.isFile())
+				strategy.add((Grammar.Step)Grammar.ExpressionFactory.build(new Sexp(strategyPath)));
+			else
+				for (File strategyFile: strategyPath.listFiles())
+					strategy.add((Grammar.Step)Grammar.ExpressionFactory.build(new Sexp(strategyFile)));
+			strategyPath = new File(args[1]);
+			List<Grammar.Step> opposingStrategy = new ArrayList<Grammar.Step>();
+			if (strategyPath.isFile())
+				opposingStrategy.add((Grammar.Step)Grammar.ExpressionFactory.build(new Sexp(strategyPath)));
+			else
+				for (File strategyFile: strategyPath.listFiles())
+					opposingStrategy.add((Grammar.Step)Grammar.ExpressionFactory.build(new Sexp(strategyFile)));
+
 			// Initialize the simulation state
-			Grammar.Step strategy = (Grammar.Step)Grammar.ExpressionFactory.build(new Sexp(new File(args[0])));
-			Grammar.Step opposingStrategy = (Grammar.Step)Grammar.ExpressionFactory.build(new Sexp(new File(args[1])));
 			Tournament tourney = new Tournament(Population.seed, strategy, opposingStrategy);
 		
 			TournamentWithUI ui = new TournamentWithUI(tourney);

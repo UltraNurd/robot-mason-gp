@@ -14,6 +14,11 @@ public class Robot implements Steppable, Oriented2D {
 	public static final double robotSize = 12.0;
 	
 	/**
+	 * The loaded strategy for this robot.
+	 */
+	private Grammar.Step strategy = null;
+	
+	/**
 	 * The parent team of this robot.
 	 */
 	private Team parent = null;
@@ -77,11 +82,14 @@ public class Robot implements Steppable, Oriented2D {
 
 	/**
 	 * Sets up the robot with initial facing.
-	 * 
+	 *
+	 * @param strategy The loaded step program, possibly
+	 * unique to this robot.
 	 * @param team The team containing this robot.
 	 * @param startAngle The robot's starting orientation
 	 */
-	public Robot(Team team, double startAngle) {
+	public Robot(Grammar.Step strategy, Team team, double startAngle) {
+		this.strategy = strategy;
 		this.parent = team;
 		this.orientation = startAngle;
 	}
@@ -102,11 +110,11 @@ public class Robot implements Steppable, Oriented2D {
 		
 		// Execute this robot's loaded step program (currently team-wide)
 		try {
-			parent.strategy.eval(this);
+			strategy.eval(this);
 		} catch (InvalidSexpException e) {
 			// Bad step program, stop simulating
 			System.err.println(e.getMessage());
-			System.err.println(parent.strategy.toString());
+			System.err.println(strategy.toString());
 			state.kill();
 			return;
 		}

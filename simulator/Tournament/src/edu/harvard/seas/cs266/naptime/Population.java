@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import ec.util.MersenneTwisterFast;
@@ -85,7 +86,7 @@ public class Population {
 		double[] fitnesses = new double[individuals.size()];
 		for (Grammar.Step individual: individuals) {
 			// Set up the simulation with this strategy and give it a unique ID
-			Tournament tourney = new Tournament(seed, individual, baseline);
+			Tournament tourney = new Tournament(seed, Arrays.asList(new Grammar.Step[] {individual}), Arrays.asList(new Grammar.Step[] {baseline}));
 			tourney.nameThread();
 			tourney.setJob(generations ^ individual.hashCode());
 			
