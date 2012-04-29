@@ -46,8 +46,8 @@ public class Goal {
 		else
 			maxX = tourney.field.getWidth();
 		double minX = maxX - 4.0;
-		double minY = goalPosition.y - goalSize/2;
-		double maxY = goalPosition.y + goalSize/2;
+		double minY = goalPosition.y - goalSize/2 - 4.0;
+		double maxY = goalPosition.y + goalSize/2 + 4.0;
 		
 		// Check if any treats are within bounds
 		Boolean done = true;
