@@ -12,14 +12,14 @@
         (if (lt (getRange 13) 6) (setSpeed 0.425 -0.1))
         (if (lt (getRange 12) 6) (setSpeed 0.4 -0.1))))
     (if
-      (or (and (not (isCarrying)) (lt (getMidpoint) 15))
-          (and (isCarrying) (lt (getMidpoint) 8)))
+      (or (and (not (inState carry)) (lt (getMidpoint) 15))
+          (and (inState carry) (lt (getMidpoint) 8)))
       (setSpeed -0.1 0.1)
       (if
-        (or (and (not (isCarrying)) (gt (getMidpoint) 15))
-            (and (isCarrying) (gt (getMidpoint) 22)))
+        (or (and (not (inState carry)) (gt (getMidpoint) 15))
+            (and (inState carry) (gt (getMidpoint) 22)))
         (setSpeed 0.1 -0.1)
         (if
-          (or (isCarrying) (lt (getWidth) 13))
+          (or (inState carry) (lt (getWidth) 13))
           (setSpeed 0.2 0.2)
           (and (setSpeed 0.0 0.0) (pickUp)))))))

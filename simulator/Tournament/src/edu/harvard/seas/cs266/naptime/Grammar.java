@@ -103,6 +103,8 @@ public class Grammar {
 				return grammar.new GetRange(sexp);
 			else if (name.equals(SetSpeed.name))
 				return grammar.new SetSpeed(sexp);
+			else if (name.equals(InState.name))
+				return grammar.new InState(sexp);
 			else if (name.equals(IsCarrying.name)) {
 				System.err.printf("%s has been deprecated, use %s\n", IsCarrying.name, "inState");
 				return grammar.new IsCarrying(sexp);
@@ -671,6 +673,51 @@ public class Grammar {
 					children.add(Double.toString(generator.nextDouble()*0.2 - 0.1));
 				else
 					children.add(Double.toString(right*(generator.nextDouble() + 0.5)));
+				return new Sexp(name, children);
+			} else
+				return toSexp();
+		}
+	}
+	
+	public class InState extends Expression {
+		public final static String name = "inState";
+		
+		private Robot.State state;
+		
+		public InState(Sexp sexp) throws InvalidSexpException {
+			super(sexp, name);
+			
+			List<Object> contents = sexp.getChildrenAfterFirst();
+			
+			if (contents.size() != 1) {
+				throw new InvalidSexpException("inState takes only one argument");
+			}
+			
+			String stateString = (String)contents.get(0);
+			try {
+				state = Robot.State.valueOf(stateString.toUpperCase());
+			} catch (Exception e) {
+				throw new InvalidSexpException(String.format("invalid state %s", stateString));
+			}
+		}
+		
+		public Boolean eval(Robot robot) {
+			return robot.inState(state);
+		}
+
+		@Override
+		public Object toSexp() {
+			List<Object> children = new ArrayList<Object>();
+			children.add(state.toString().toLowerCase());
+			return new Sexp(name, children);
+		}
+
+		@Override
+		public Object mutate(double rate, MersenneTwisterFast generator) {
+			if (generator.nextDouble() < rate) {
+				List<Object> children = new ArrayList<Object>();
+				Robot.State[] states = Robot.State.values();
+				children.add(states[generator.nextInt(states.length)].toString().toLowerCase());
 				return new Sexp(name, children);
 			} else
 				return toSexp();
