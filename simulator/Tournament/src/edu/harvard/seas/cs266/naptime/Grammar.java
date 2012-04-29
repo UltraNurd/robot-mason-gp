@@ -103,9 +103,10 @@ public class Grammar {
 				return grammar.new GetRange(sexp);
 			else if (name.equals(SetSpeed.name))
 				return grammar.new SetSpeed(sexp);
-			else if (name.equals(IsCarrying.name))
+			else if (name.equals(IsCarrying.name)) {
+				System.err.printf("%s has been deprecated, use %s\n", IsCarrying.name, "inState");
 				return grammar.new IsCarrying(sexp);
-			else if (name.equals(GetMidpointInCamera.name))
+			} else if (name.equals(GetMidpointInCamera.name))
 				return grammar.new GetMidpointInCamera(sexp);
 			else if (name.equals(GetWidthInCamera.name))
 				return grammar.new GetWidthInCamera(sexp);
@@ -676,6 +677,11 @@ public class Grammar {
 		}
 	}
 	
+	/**
+	 * Kept around so old S-expressions can still be run.
+	 * 
+	 * @deprecated
+	 */
 	public class IsCarrying extends LeafExpression {
 		public final static String name = "isCarrying";
 		
@@ -684,7 +690,7 @@ public class Grammar {
 		}
 		
 		public Boolean eval(Robot robot) {
-			return robot.isCarrying();
+			return robot.inState(Robot.State.CARRY);
 		}
 
 		@Override

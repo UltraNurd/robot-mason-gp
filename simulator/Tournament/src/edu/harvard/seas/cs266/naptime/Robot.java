@@ -51,6 +51,19 @@ public class Robot implements Steppable, Oriented2D {
 	private double rightSpeed = 0.0;
 	
 	/**
+	 * The possible states of the robot. Kept small for easier evolution.
+	 */
+	public enum State {
+		SEARCH,
+		CARRY,
+	}
+	
+	/**
+	 * The robot's current state. Defaults to State.SEARCH.
+	 */
+	private State state = State.SEARCH;
+	
+	/**
 	 * The robot's current payload, if any.
 	 */
 	private Treat carrying = null;
@@ -85,6 +98,7 @@ public class Robot implements Steppable, Oriented2D {
 				// Drop it
 				tourney.field.remove(carrying);
 				carrying = null;
+				this.state = State.SEARCH;
 				
 				// Update the score
 				tourney.score[parent.opposing ? 1 : 0]++;
@@ -413,6 +427,7 @@ public class Robot implements Steppable, Oriented2D {
 				    depthBuffer[pixel] < Robot.robotSize*0.75) {
 					carrying = (Treat) camera[pixel];
 					carrying.carried = true;
+					state = State.CARRY;
 					return true;
 				}
 		}
@@ -438,11 +453,11 @@ public class Robot implements Steppable, Oriented2D {
 	}
 	
 	/**
-	 * Accessor for the robot's carrying status (not realistic).
+	 * Accessor for the robot's state.
 	 * 
-	 * @return True if the robot has something in its arms.
+	 * @return True if the robot's state matches the specified state.
 	 */
-	public Boolean isCarrying() {
-		return carrying != null;
+	public Boolean inState(State state) {
+		return this.state == state;
 	}
 }
