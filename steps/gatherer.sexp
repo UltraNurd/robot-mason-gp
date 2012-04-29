@@ -33,7 +33,7 @@
         (gt (getMidpoint) 15)
         (setSpeed 0.1 -0.1))
       (if
-        (lt (getWidth) 15)
+        (and (gt (getWidth) 10) (lt (getWidth) 15))
         (setSpeed 0.2 0.2)
         (and (setSpeed 0.0 0.0) (drop)))))
   (or
