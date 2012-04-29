@@ -14,7 +14,7 @@
   (if
     (inState backup)
     (if
-      (gt (getTravel) -12)
+      (and (gt (getTravel) -12) (gt (getRange 8) 2))
       (setSpeed -0.2 -0.2)
       (and (setSpeed 0.0 0.0) (setState uturn))))
   (if
