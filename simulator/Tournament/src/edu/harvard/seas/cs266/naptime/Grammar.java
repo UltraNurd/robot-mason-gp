@@ -168,6 +168,12 @@ public class Grammar {
 		public Object toSexp() {
 			return new Sexp(name, new ArrayList<Object>());
 		}
+
+		@Override
+		public Object mutate(double rate, MersenneTwisterFast generator) {
+			// By default don't mutate leaves
+			return toSexp();
+		}
 	}
 	
 	public class NoOp extends LeafExpression {
@@ -743,12 +749,6 @@ public class Grammar {
 		public Boolean eval(Robot robot) {
 			return robot.inState(Robot.State.CARRY);
 		}
-
-		@Override
-		public Object mutate(double rate, MersenneTwisterFast generator) {
-			// For now, don't mutate this
-			return toSexp();
-		}
 	}
 	
 	public class SetState extends Expression {
@@ -807,12 +807,6 @@ public class Grammar {
 		public double getValue(Robot robot) {
 			return robot.findMidpointOfObjectiveInView();
 		}
-
-		@Override
-		public Object mutate(double rate, MersenneTwisterFast generator) {
-			// For now, don't mutate this
-			return toSexp();
-		}
 	}
 	
 	public class GetWidthInCamera extends LeafExpression {
@@ -824,12 +818,6 @@ public class Grammar {
 		
 		public double getValue(Robot robot) {
 			return robot.findWidthOfObjectiveInView();
-		}
-
-		@Override
-		public Object mutate(double rate, MersenneTwisterFast generator) {
-			// For now, don't mutate this
-			return toSexp();
 		}
 	}
 	
@@ -843,12 +831,6 @@ public class Grammar {
 		public Boolean eval(Robot robot) {
 			return robot.drop();
 		}
-
-		@Override
-		public Object mutate(double rate, MersenneTwisterFast generator) {
-			// For now, don't mutate this
-			return toSexp();
-		}
 	}
 	
 	public class PickUp extends LeafExpression {
@@ -860,12 +842,6 @@ public class Grammar {
 		
 		public Boolean eval(Robot robot) {
 			return robot.pickUp();
-		}
-
-		@Override
-		public Object mutate(double rate, MersenneTwisterFast generator) {
-			// For now, don't mutate this
-			return toSexp();
 		}
 	}
 }
