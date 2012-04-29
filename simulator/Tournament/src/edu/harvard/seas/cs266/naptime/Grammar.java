@@ -108,7 +108,9 @@ public class Grammar {
 			else if (name.equals(IsCarrying.name)) {
 				System.err.printf("%s has been deprecated, use %s\n", IsCarrying.name, "inState");
 				return grammar.new IsCarrying(sexp);
-			} else if (name.equals(GetMidpointInCamera.name))
+			} else if (name.equals(SetState.name))
+				return grammar.new SetState(sexp);
+			else if (name.equals(GetMidpointInCamera.name))
 				return grammar.new GetMidpointInCamera(sexp);
 			else if (name.equals(GetWidthInCamera.name))
 				return grammar.new GetWidthInCamera(sexp);
@@ -746,6 +748,52 @@ public class Grammar {
 		public Object mutate(double rate, MersenneTwisterFast generator) {
 			// For now, don't mutate this
 			return toSexp();
+		}
+	}
+	
+	public class SetState extends Expression {
+		public final static String name = "setState";
+		
+		private Robot.State state;
+		
+		public SetState(Sexp sexp) throws InvalidSexpException {
+			super(sexp, name);
+			
+			List<Object> contents = sexp.getChildrenAfterFirst();
+			
+			if (contents.size() != 1) {
+				throw new InvalidSexpException("setState takes only one argument");
+			}
+			
+			String stateString = (String)contents.get(0);
+			try {
+				state = Robot.State.valueOf(stateString.toUpperCase());
+			} catch (Exception e) {
+				throw new InvalidSexpException(String.format("invalid state %s", stateString));
+			}
+		}
+		
+		public Boolean eval(Robot robot) {
+			robot.setState(state);
+			return true;
+		}
+
+		@Override
+		public Object toSexp() {
+			List<Object> children = new ArrayList<Object>();
+			children.add(state.toString().toLowerCase());
+			return new Sexp(name, children);
+		}
+
+		@Override
+		public Object mutate(double rate, MersenneTwisterFast generator) {
+			if (generator.nextDouble() < rate) {
+				List<Object> children = new ArrayList<Object>();
+				Robot.State[] states = Robot.State.values();
+				children.add(states[generator.nextInt(states.length)].toString().toLowerCase());
+				return new Sexp(name, children);
+			} else
+				return toSexp();
 		}
 	}
 	

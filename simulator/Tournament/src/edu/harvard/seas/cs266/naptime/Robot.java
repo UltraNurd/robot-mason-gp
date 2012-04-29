@@ -451,4 +451,8 @@ public class Robot implements Steppable, Oriented2D {
 	public Boolean inState(State state) {
 		return this.state == state;
 	}
+
+	public void setState(State state) {
+		this.state = state;
+	}
 }
