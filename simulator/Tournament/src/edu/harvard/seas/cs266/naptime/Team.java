@@ -51,7 +51,7 @@ public class Team implements Steppable {
 		}
 		
 		// Create a goal at our end of the field
-		goal = new Goal();
+		goal = new Goal(this);
 		if (opposing)
 			field.setObjectLocation(goal, new Double2D(field.getWidth(), field.getHeight()*0.5));
 		else
@@ -80,5 +80,8 @@ public class Team implements Steppable {
 		for (Robot member : members) {
 			member.step(state);
 		}
+		
+		// Have goals score any nearby treats
+		goal.step(state);
 	}
 }

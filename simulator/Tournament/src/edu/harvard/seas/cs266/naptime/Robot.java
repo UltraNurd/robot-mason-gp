@@ -89,35 +89,6 @@ public class Robot implements Steppable, Oriented2D {
 		// Get the current simulation
 		Tournament tourney = (Tournament) state;
 		
-		// Check if a carried object has dropped into the goal (based on proximity, kinda cheaty)
-		if (carrying != null) {
-			Double2D carriedPosition = tourney.field.getObjectLocation(carrying);
-			if ((carriedPosition.x < 4 || carriedPosition.x > tourney.field.getWidth() - 4) &&
-				carriedPosition.y > (tourney.field.getHeight() - Goal.goalSize)/2 &&
-				carriedPosition.y < (tourney.field.getHeight() + Goal.goalSize)/2) {
-				// Drop it
-				tourney.field.remove(carrying);
-				carrying = null;
-				this.state = State.SEARCH;
-				
-				// Update the score
-				tourney.score[parent.opposing ? 1 : 0]++;
-			}
-		}
-		
-		// If we just dropped off the last piece of food, end the simulation prematurely
-		Boolean done = true;
-		for (Object treat: tourney.field.getAllObjects()) {
-			if (treat.getClass() == Treat.class) {
-				done = false;
-				break;
-			}
-		}
-		if (done) {
-			state.kill();
-			return;
-		}
-		
 		// Update the sensor state
 		updateRanges(tourney.field);
 		updateCamera(tourney.field);
