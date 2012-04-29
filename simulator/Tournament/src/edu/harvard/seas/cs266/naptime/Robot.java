@@ -161,15 +161,15 @@ public class Robot implements Steppable, Oriented2D {
 				// Determine which sensor by which it would be seen
 				int sensor = (((int) Math.round(obstacleAngle*8/Math.PI)) + 16) % 16;
 				
-				// Update the closest obstacle
-				double distance = position.length() - Robot.robotSize;
+				// Update the closest obstacle, less its radius
+				double distance = position.length() - Robot.robotSize/2;
 				if (distance < ranges[sensor])
 					ranges[sensor] = distance;
 			}
 		}
 		
 		// Update distance to closest wall for each sensor, if there isn't a closer obstacle
-		for (int r = 0; r < 16; r++)
+		for (int r = 0; r < 16; r++) {
 			if (ranges[r] == Double.MAX_VALUE) {
 				double sensorAngle = (orientation + r*Math.PI/8) % (2*Math.PI);
 				if (sensorAngle > Math.PI)
@@ -185,6 +185,10 @@ public class Robot implements Steppable, Oriented2D {
 				else if (sensorAngle >= -3*Math.PI/4 && sensorAngle < -Math.PI/4)
 					ranges[r] = current.y/Math.cos(sensorAngle + Math.PI/2);
 			}
+			
+			// Sensors are on the circumference of the robot, so reduce distance by the radius
+			ranges[r] -= Robot.robotSize/2;
+		}
 	}
 	
 	/**
