@@ -12,6 +12,18 @@
           (setSpeed 0.2 0.2)
           (and (setSpeed 0.0 0.0) (pickUp))))))
   (if
+    (inState backup)
+    (if
+      (gt (getTravel) -12)
+      (setSpeed -0.2 -0.2)
+      (and (setSpeed 0.0 0.0) (setState uturn))))
+  (if
+    (inState uturn)
+    (if
+      (lt (getRotations) 0.5)
+      (setSpeed 0.1 -0.1)
+      (and (setSpeed 0.0 0.0) (setState search))))
+  (if
     (inState carry)
     (and
       (or

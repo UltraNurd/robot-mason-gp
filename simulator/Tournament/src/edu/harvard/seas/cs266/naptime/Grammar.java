@@ -114,6 +114,10 @@ public class Grammar {
 				return grammar.new GetMidpointInCamera(sexp);
 			else if (name.equals(GetWidthInCamera.name))
 				return grammar.new GetWidthInCamera(sexp);
+			else if (name.equals(GetDistanceTraveled.name))
+				return grammar.new GetDistanceTraveled(sexp);
+			else if (name.equals(GetRotations.name))
+				return grammar.new GetRotations(sexp);
 			else if (name.equals(Drop.name))
 				return grammar.new Drop(sexp);
 			else if (name.equals(PickUp.name))
@@ -821,6 +825,30 @@ public class Grammar {
 		}
 	}
 	
+	public class GetDistanceTraveled extends LeafExpression {
+		public final static String name = "getTravel";
+		
+		public GetDistanceTraveled(Sexp sexp) throws InvalidSexpException {
+			super(sexp, name);
+		}
+		
+		public double getValue(Robot robot) {
+			return robot.getDistanceTraveled();
+		}
+	}
+
+	public class GetRotations extends LeafExpression {
+		public final static String name = "getRotations";
+		
+		public GetRotations(Sexp sexp) throws InvalidSexpException {
+			super(sexp, name);
+		}
+		
+		public double getValue(Robot robot) {
+			return robot.getRotations();
+		}
+	}
+
 	public class Drop extends LeafExpression {
 		public final static String name = "drop";
 		

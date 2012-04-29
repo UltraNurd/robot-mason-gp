@@ -51,11 +51,18 @@ public class Robot implements Steppable, Oriented2D {
 	private double rightSpeed = 0.0;
 	
 	/**
+	 * An odometer tracking movement and rotation since the last state transition.
+	 */
+	private double[] odometer = new double[] {0.0, 0.0};
+	
+	/**
 	 * The possible states of the robot. Kept small for easier evolution.
 	 */
 	public enum State {
 		SEARCH,
 		CARRY,
+		BACKUP,
+		UTURN,
 	}
 	
 	/**
@@ -331,7 +338,9 @@ public class Robot implements Steppable, Oriented2D {
 		final double minTreatDistance = (Robot.robotSize + Treat.treatSize)/2;
 		
 		// Update the orientation based on relative wheel velocity
-		orientation -= (rightSpeed - leftSpeed)/robotSize;
+		double deltaTheta = -(rightSpeed - leftSpeed)/robotSize;
+		orientation += deltaTheta;
+		odometer[1] += deltaTheta;
 		
 		// Keep orientation in [-pi,pi] range even though Oriented2D mods correctly
 		if (orientation > Math.PI)
@@ -341,6 +350,7 @@ public class Robot implements Steppable, Oriented2D {
 		
 		// Update the position based on midpoint speed and new orientation
 		double midpointSpeed = (rightSpeed + leftSpeed)/2;
+		odometer[0] += midpointSpeed;
 		Double2D direction = new Double2D(Math.cos(orientation), Math.sin(orientation));
 		field.setObjectLocation(this, field.getObjectLocation(this).add(direction.multiply(midpointSpeed)));
 		
@@ -398,7 +408,7 @@ public class Robot implements Steppable, Oriented2D {
 		if (carrying != null) {
 			carrying.carried = false;
 			carrying = null;
-			state = State.SEARCH;
+			setState(State.BACKUP);
 			return true;
 		}
 		return false;
@@ -418,7 +428,7 @@ public class Robot implements Steppable, Oriented2D {
 				    depthBuffer[pixel] < Robot.robotSize*0.75) {
 					carrying = (Treat) camera[pixel];
 					carrying.carried = true;
-					state = State.CARRY;
+					setState(State.CARRY);
 					return true;
 				}
 		}
@@ -452,7 +462,30 @@ public class Robot implements Steppable, Oriented2D {
 		return this.state == state;
 	}
 
+	/**
+	 * Mutator for the robot's state. Also resets the odometer.
+	 * 
+	 * @param state The new state to transition into.
+	 */
 	public void setState(State state) {
 		this.state = state;
+		odometer[0] = 0.0;
+		odometer[1] = 0.0;
+	}
+	
+	/**
+	 * @return The absolute distance moved by the midpoint since
+	 * the odometer was last reset.
+	 */
+	public double getDistanceTraveled() {
+		return odometer[0];
+	}
+	
+	/**
+	 * @return The number of whole rotations completed since
+	 * the odometer was last reset.
+	 */
+	public double getRotations() {
+		return odometer[1]/(2*Math.PI);
 	}
 }
