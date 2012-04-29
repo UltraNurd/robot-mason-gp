@@ -55,7 +55,7 @@ public class Goal {
 			if (treat.getClass() == Treat.class) {
 				done = false;
 				Double2D treatPosition = tourney.field.getObjectLocation(treat);
-				if (treatPosition.x >= minX && treatPosition.x <= maxX && treatPosition.y >= minY && treatPosition.y <= maxY) {
+				if (!((Treat)treat).carried && treatPosition.x >= minX && treatPosition.x <= maxX && treatPosition.y >= minY && treatPosition.y <= maxY) {
 					// Clear it from the field
 					tourney.field.remove(treat);
 					
