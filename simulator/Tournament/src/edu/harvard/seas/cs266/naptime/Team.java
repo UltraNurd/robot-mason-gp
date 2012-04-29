@@ -53,9 +53,9 @@ public class Team implements Steppable {
 		// Create a goal at our end of the field
 		goal = new Goal(this);
 		if (opposing)
-			field.setObjectLocation(goal, new Double2D(field.getWidth(), field.getHeight()*0.5));
-		else
 			field.setObjectLocation(goal, new Double2D(0.0, field.getHeight()*0.5));
+		else
+			field.setObjectLocation(goal, new Double2D(field.getWidth(), field.getHeight()*0.5));
 		
 		// Position our robots in the field after creating them
 		for (int r = 0; r < members.length; r++)
