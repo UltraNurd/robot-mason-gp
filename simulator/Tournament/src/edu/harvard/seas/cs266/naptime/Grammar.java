@@ -112,6 +112,8 @@ public class Grammar {
 				return grammar.new GetMidpointInCamera(sexp);
 			else if (name.equals(GetWidthInCamera.name))
 				return grammar.new GetWidthInCamera(sexp);
+			else if (name.equals(Drop.name))
+				return grammar.new Drop(sexp);
 			else if (name.equals(PickUp.name))
 				return grammar.new PickUp(sexp);
 			else
@@ -783,6 +785,24 @@ public class Grammar {
 		}
 	}
 	
+	public class Drop extends LeafExpression {
+		public final static String name = "drop";
+		
+		public Drop(Sexp sexp) throws InvalidSexpException {
+			super(sexp, name);
+		}
+		
+		public Boolean eval(Robot robot) {
+			return robot.drop();
+		}
+
+		@Override
+		public Object mutate(double rate, MersenneTwisterFast generator) {
+			// For now, don't mutate this
+			return toSexp();
+		}
+	}
+	
 	public class PickUp extends LeafExpression {
 		public final static String name = "pickUp";
 		
@@ -791,7 +811,7 @@ public class Grammar {
 		}
 		
 		public Boolean eval(Robot robot) {
-			return robot.pickUpObjective();
+			return robot.pickUp();
 		}
 
 		@Override

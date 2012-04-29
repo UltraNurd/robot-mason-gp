@@ -13,20 +13,35 @@
           (and (setSpeed 0.0 0.0) (pickUp))))))
   (if
     (inState carry)
-    (if
-      (lt (getMidpoint) 8)
-      (setSpeed -0.1 0.1)
-      (if
-        (gt (getMidpoint) 22)
-        (setSpeed 0.1 -0.1)
-        (setSpeed 0.2 0.2))))
-  (or
-    (if (lt (getRange 0) 6) (setSpeed -0.2 -0.2))
-    (if (lt (getRange 4) 6) (setSpeed -0.1 0.4))
-    (if (lt (getRange 3) 6) (setSpeed -0.1 0.425))
-    (if (lt (getRange 2) 6) (setSpeed -0.1 0.45))
-    (if (lt (getRange 1) 6) (setSpeed -0.1 0.475))
-    (if (lt (getRange 15) 6) (setSpeed 0.475 -0.1))
-    (if (lt (getRange 14) 6) (setSpeed 0.45 -0.1))
-    (if (lt (getRange 13) 6) (setSpeed 0.425 -0.1))
-    (if (lt (getRange 12) 6) (setSpeed 0.4 -0.1))))
+    (and
+      (or
+        (if
+          (lt (getMidpoint) 8)
+          (setSpeed -0.1 0.1))
+        (if
+          (gt (getMidpoint) 22)
+          (setSpeed 0.1 -0.1))
+        (if
+          (or (gt (getRange 0) 6) (lt (getWidth) 15))
+          (setSpeed 0.2 0.2)
+          (and (setSpeed 0.0 0.0) (drop))))
+      (or
+        (if (lt (getRange 0) 4) (setSpeed -0.2 -0.2))
+        (if (lt (getRange 4) 4) (setSpeed -0.1 0.2))
+        (if (lt (getRange 3) 4) (setSpeed -0.1 0.225))
+        (if (lt (getRange 2) 4) (setSpeed -0.1 0.25))
+        (if (lt (getRange 1) 4) (setSpeed -0.1 0.275))
+        (if (lt (getRange 15) 4) (setSpeed 0.275 -0.1))
+        (if (lt (getRange 14) 4) (setSpeed 0.25 -0.1))
+        (if (lt (getRange 13) 4) (setSpeed 0.225 -0.1))
+        (if (lt (getRange 12) 4) (setSpeed 0.2 -0.1))))
+    (or
+      (if (lt (getRange 0) 6) (setSpeed -0.2 -0.2))
+      (if (lt (getRange 4) 6) (setSpeed -0.1 0.2))
+      (if (lt (getRange 3) 6) (setSpeed -0.1 0.225))
+      (if (lt (getRange 2) 6) (setSpeed -0.1 0.25))
+      (if (lt (getRange 1) 6) (setSpeed -0.1 0.275))
+      (if (lt (getRange 15) 6) (setSpeed 0.275 -0.1))
+      (if (lt (getRange 14) 6) (setSpeed 0.25 -0.1))
+      (if (lt (getRange 13) 6) (setSpeed 0.225 -0.1))
+      (if (lt (getRange 12) 6) (setSpeed 0.2 -0.1)))))

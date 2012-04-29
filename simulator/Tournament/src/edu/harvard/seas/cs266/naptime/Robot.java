@@ -420,10 +420,26 @@ public class Robot implements Steppable, Oriented2D {
 	/**
 	 * Updates what the robot is carrying.
 	 * 
+	 * @return True on success, false if not carrying anything.
+	 */
+	public Boolean drop() {
+		// Pick up food if possible
+		if (carrying != null) {
+			carrying.carried = false;
+			carrying = null;
+			state = State.SEARCH;
+			return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Updates what the robot is carrying.
+	 * 
 	 * @return True on success, false otherwise (already carrying something,
 	 * not a treat, treat out of range, etc.).
 	 */
-	public Boolean pickUpObjective() {
+	public Boolean pickUp() {
 		// Pick up food if possible
 		if (carrying == null) {
 			for (int pixel = 0; pixel < 30; pixel++)
