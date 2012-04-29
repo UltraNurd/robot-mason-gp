@@ -379,6 +379,23 @@ public class Robot implements Steppable, Oriented2D {
 			}
 		}
 		
+		// Check for wall collisions
+		Double2D position = field.getObjectLocation(this);
+		double x, y;
+		if (position.x < Robot.robotSize/2)
+			x = Robot.robotSize/2;
+		else if (position.x > field.getWidth() - Robot.robotSize/2)
+			x = field.getWidth() - Robot.robotSize/2;
+		else
+			x = position.x;
+		if (position.y < Robot.robotSize/2)
+			y = Robot.robotSize/2;
+		else if (position.y > field.getHeight() - Robot.robotSize/2)
+			y = field.getWidth() - Robot.robotSize/2;
+		else
+			y = position.y;
+		field.setObjectLocation(this, new Double2D(x, y));
+		
 		// If we're carrying something, update its position too
 		if (carrying != null)
 			field.setObjectLocation(carrying, field.getObjectLocation(this).add(direction.multiply(minTreatDistance)));
