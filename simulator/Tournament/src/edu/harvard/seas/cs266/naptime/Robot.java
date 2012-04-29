@@ -204,8 +204,8 @@ public class Robot implements Steppable, Oriented2D {
 			camera[pixel] = null;
 		}
 		for (Object objective: field.getAllObjects()) {
-			if ((carrying == null && objective.getClass() == Treat.class) ||
-				(carrying != null && objective == parent.goal) ||
+			if ((state == State.SEARCH && objective.getClass() == Treat.class) ||
+				(state == State.CARRY && objective == parent.goal) ||
 				objective.getClass() == Robot.class) {
 				// Make sure this treat isn't already being carried
 				if (objective.getClass() == Treat.class && ((Treat) objective).carried)
