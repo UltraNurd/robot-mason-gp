@@ -339,6 +339,8 @@ public class Robot implements Steppable, Oriented2D {
 	 * Uses the current speed to adjust the robot's position and orientation.
 	 */
 	private void move(Continuous2D field) {
+		final double minTreatDistance = (Robot.robotSize + Treat.treatSize)/2;
+		
 		// Update the orientation based on relative wheel velocity
 		orientation -= (rightSpeed - leftSpeed)/robotSize;
 		
@@ -355,17 +357,24 @@ public class Robot implements Steppable, Oriented2D {
 		
 		// Check for collisions
 		for (Object obstacle: field.getObjectsWithinDistance(field.getObjectLocation(this), Robot.robotSize, false, true)) {
+			Double2D obstaclePosition = field.getObjectLocation(obstacle);
+			Double2D position = field.getObjectLocation(this);
 			if (obstacle.getClass() == Robot.class) {
-				if (field.getObjectLocation(this).distance(field.getObjectLocation(obstacle)) < Robot.robotSize) {
+				if (position.distance(obstaclePosition) < Robot.robotSize) {
 					// "Bounce" off the obstacle
-					field.setObjectLocation(this, field.getObjectLocation(obstacle).add(field.getObjectLocation(this).subtract(field.getObjectLocation(obstacle)).resize(Robot.robotSize)));
+					field.setObjectLocation(this, obstaclePosition.add(position.subtract(obstaclePosition).resize(Robot.robotSize)));
+				}
+			} else if (obstacle.getClass() == Treat.class && obstacle != carrying) {
+				if (position.distance(obstaclePosition) < minTreatDistance) {
+					// "Shove" the treat
+					field.setObjectLocation(obstacle, position.add(obstaclePosition.subtract(position).resize(minTreatDistance)));
 				}
 			}
 		}
 		
 		// If we're carrying something, update its position too
 		if (carrying != null)
-			field.setObjectLocation(carrying, field.getObjectLocation(this).add(direction.multiply((Robot.robotSize + Treat.treatSize)/2)));
+			field.setObjectLocation(carrying, field.getObjectLocation(this).add(direction.multiply(minTreatDistance)));
 	}
 	
 	/**
