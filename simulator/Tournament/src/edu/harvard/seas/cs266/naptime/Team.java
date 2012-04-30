@@ -71,9 +71,20 @@ public class Team implements Steppable {
 	@Override
 	public void step(SimState state) {
 		// For now just have each robot behave individually
+		//   Track travel distance
+		double minDistance = Double.MAX_VALUE, maxDistance = 0.0;
 		for (Robot member : members) {
 			member.step(state);
+			double distance = member.getTotalDistanceTraveled();
+			if (distance < minDistance)
+				minDistance = distance;
+			if (distance > maxDistance)
+				maxDistance = distance;
 		}
+		
+		// Update the non-movement penalty flag if necessary
+		if (!opposing && minDistance*100 < maxDistance)
+			((Tournament)state).setPenalty(10);
 		
 		// Have goals score any nearby treats
 		goal.step(state);

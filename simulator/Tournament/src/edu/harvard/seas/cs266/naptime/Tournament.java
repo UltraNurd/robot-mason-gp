@@ -54,6 +54,13 @@ public class Tournament extends SimState {
 	 * The current score.
 	 */
 	public int[] score = new int[2];
+
+	/**
+	 * Track an additional penalty factor on fitness.
+	 * Currently used to slash fitness by 100 if one robot
+	 * doesn't move much relative to the others.
+	 */
+	private double penalty = 1.0;
 	
 	/**
 	 * Creates the simulation.
@@ -116,7 +123,7 @@ public class Tournament extends SimState {
 	/**
 	 * Calculate a fitness based on number of treats collected. We want
 	 * the collection rate, with a bonus for collecting more than the
-	 * opposing team.
+	 * opposing team. Applies the penalty factor (which defaults to 1).
 	 */
 	public double getFitness() {
 		double collectionRate = ((double)score[0])/schedule.getSteps();
@@ -125,7 +132,7 @@ public class Tournament extends SimState {
 			opponentRatio = nTreats;
 		else
 			opponentRatio = ((double)score[0])/score[1];
-		return collectionRate*opponentRatio;
+		return collectionRate*opponentRatio/penalty;
 	}
 
 	/**
@@ -137,6 +144,10 @@ public class Tournament extends SimState {
 		// Run the simulation using parent class convenience method.
 		doLoop(Tournament.class, args);
 		System.exit(0);
+	}
+
+	public void setPenalty(double penalty) {
+		this.penalty = penalty;
 	}
 
 }
