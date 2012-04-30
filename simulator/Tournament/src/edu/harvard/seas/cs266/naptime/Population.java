@@ -30,12 +30,12 @@ public class Population {
 	 * Number of individuals in the population at any given time. Must
 	 * be even for mating purposes.
 	 */
-	private final static int size = 40;
+	private int size;
 	
 	/**
 	 * The rate of mutation, as a probability [0.0, 1.0].
 	 */
-	private final static double mutationRate = 0.05;
+	private double mutationRate;
 	
 	/**
 	 * The comparison individual, presumably manually written.
@@ -50,7 +50,7 @@ public class Population {
 	/**
 	 * The current set of individuals in this population.
 	 */
-	private List<Individual> individuals = new ArrayList<Individual>();
+	private List<Individual> individuals;
 	
 	/**
 	 * The number of generations for which this population has evolved.
@@ -64,12 +64,17 @@ public class Population {
 	 * @throws InvalidSexpException 
 	 * @throws FileNotFoundException 
 	 */
-	public Population(File baselinePath, File progenitorPath) throws FileNotFoundException, InvalidSexpException {
+	public Population(File baselinePath, File progenitorPath, int size, double mutationRate) throws FileNotFoundException, InvalidSexpException {
+		// Set parameters
+		this.size = size;
+		this.mutationRate = mutationRate;
+		
 		// Read the strategy files
 		baseline = new Individual(baselinePath);
 		progenitor = new Individual(progenitorPath);
 		
 		// Start the population with the progenitors plus some mutations
+		individuals = new ArrayList<Individual>(size);
 		individuals.add(progenitor);
 		MersenneTwisterFast generator = new MersenneTwisterFast(seed);
 		for (int i = 1; i < size; i++) {
@@ -101,7 +106,7 @@ public class Population {
 		for (Individual individual: individuals)
 			totalFitness += individual.getFitness();
 		Individual fittest = null;
-		List<Individual> parents = new ArrayList<Individual>(individuals.size());
+		List<Individual> parents = new ArrayList<Individual>(size);
 		for (Individual individual: individuals) {
 			// Check if this individual is the fittest
 			if (individual.getFitness() > maxFitness) {
@@ -122,7 +127,7 @@ public class Population {
 		}
 		
 		// Dump some fitness stats for graphing
-		System.out.printf("%d\t%f\t%f\n", generations, totalFitness/individuals.size(), maxFitness);
+		System.out.printf("%d\t%f\t%f\n", generations, totalFitness/size, maxFitness);
 		
 		// Pairwise mate the parents, then mutate their offspring
 		individuals.clear();
@@ -145,23 +150,23 @@ public class Population {
 	 */
 	public static void main(String[] args) {
 		// Check command-line parameters
-		if (args.length != 3) {
-			System.out.println("Usage: population <baseline strategy> <seed strategy> <fittest individual>");
+		if (args.length != 6) {
+			System.out.println("Usage: population <baseline strategy> <seed strategy> <population size> <mutation rate> <# generations> <fittest individual>");
 			System.exit(0);
 		}
 		
 		try {
 			// Set up population of individuals representing robot strategies
-			Population population = new Population(new File(args[0]), new File(args[1]));
+			Population population = new Population(new File(args[0]), new File(args[1]), Integer.parseInt(args[2]), Double.parseDouble(args[3]));
 			
 			// Evolve several times for testing purposes
 			Individual fittest = null;
-			for (int i = 0; i < 10; i++)
+			for (int i = 0; i < Integer.parseInt(args[4]); i++)
 				fittest = population.evolve();
 			
 			// Dump the best evolved step, so we can see what they learned
 			if (fittest != null)
-				fittest.write(new File(args[2]));
+				fittest.write(new File(args[5]));
 		} catch (Exception e) {
 			System.err.println(e.getMessage());
 		}
