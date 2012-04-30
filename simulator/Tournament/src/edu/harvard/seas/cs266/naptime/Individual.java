@@ -52,23 +52,28 @@ public class Individual {
 	 * 
 	 * @see MASON Manual pp. 83-84
 	 */
-	public void run(Individual baseline) {
+	public void run(Individual baseline, int iterations) {
 		// Set up the simulation with this strategy and give it a unique ID
 		Tournament tourney = new Tournament(Population.seed, strategies, baseline.strategies);
 		tourney.nameThread();
 		tourney.setJob(hashCode());
 		
-		// Run the simulation for some large number of steps (baseline can complete in ~6000)
-		tourney.start();
-		do
-			if (!tourney.schedule.step(tourney))
-				// Stop if the end condition has been reached
-				break;
-		while (tourney.schedule.getSteps() < 20000);
+		// Run the simulation multiple times to avoid initial conditions bias
+		double totalFitness = 0.0;
+		for (int i = 0; i < iterations; i++) {
+			// Run the simulation for some large number of steps (baseline can complete in ~6000)
+			tourney.start();
+			do
+				if (!tourney.schedule.step(tourney))
+					// Stop if the end condition has been reached
+					break;
+			while (tourney.schedule.getSteps() < 20000);
+			totalFitness += tourney.getFitness();
+			tourney.finish();
+		}
 		
-		// Measure fitness and cleanup
-		fitness = tourney.getFitness();
-		tourney.finish();	
+		// Measure average fitness
+		fitness = totalFitness/iterations;
 	}
 	
 	public void mutate(double mutationRate, MersenneTwisterFast generator) {

@@ -38,6 +38,11 @@ public class Population {
 	private double mutationRate;
 	
 	/**
+	 * How many simulation iterations to run for each individual.
+	 */
+	private int simulations;
+	
+	/**
 	 * The comparison individual, presumably manually written.
 	 */
 	private Individual baseline;
@@ -64,10 +69,11 @@ public class Population {
 	 * @throws InvalidSexpException 
 	 * @throws FileNotFoundException 
 	 */
-	public Population(File baselinePath, File progenitorPath, int size, double mutationRate) throws FileNotFoundException, InvalidSexpException {
+	public Population(File baselinePath, File progenitorPath, int size, double mutationRate, int simulations) throws FileNotFoundException, InvalidSexpException {
 		// Set parameters
 		this.size = size;
 		this.mutationRate = mutationRate;
+		this.simulations = simulations;
 		
 		// Read the strategy files
 		baseline = new Individual(baselinePath);
@@ -96,7 +102,7 @@ public class Population {
 		// Update fitness by running the individual against the baseline
 		for (Individual individual: individuals) {
 			// Run the simulation for this individual, comparing against the baseline
-			individual.run(baseline);
+			individual.run(baseline, simulations);
 			//System.out.printf("%d %x %f\n", generations, individual.hashCode(), individual.getFitness());
 		}
 		
@@ -150,23 +156,23 @@ public class Population {
 	 */
 	public static void main(String[] args) {
 		// Check command-line parameters
-		if (args.length != 6) {
-			System.out.println("Usage: population <baseline strategy> <seed strategy> <population size> <mutation rate> <# generations> <fittest individual>");
+		if (args.length != 7) {
+			System.out.println("Usage: population <baseline strategy> <seed strategy> <population size> <mutation rate> <simulation iterations> <# generations> <fittest individual>");
 			System.exit(0);
 		}
 		
 		try {
 			// Set up population of individuals representing robot strategies
-			Population population = new Population(new File(args[0]), new File(args[1]), Integer.parseInt(args[2]), Double.parseDouble(args[3]));
+			Population population = new Population(new File(args[0]), new File(args[1]), Integer.parseInt(args[2]), Double.parseDouble(args[3]), Integer.parseInt(args[4]));
 			
 			// Evolve several times for testing purposes
 			Individual fittest = null;
-			for (int i = 0; i < Integer.parseInt(args[4]); i++)
+			for (int i = 0; i < Integer.parseInt(args[5]); i++)
 				fittest = population.evolve();
 			
 			// Dump the best evolved step, so we can see what they learned
 			if (fittest != null)
-				fittest.write(new File(args[5]));
+				fittest.write(new File(args[6]));
 		} catch (Exception e) {
 			System.err.println(e.getMessage());
 		}
