@@ -56,9 +56,10 @@ public class Robot implements Steppable, Oriented2D {
 	private double rightSpeed = 0.0;
 	
 	/**
-	 * An odometer tracking movement and rotation since the last state transition.
+	 * An odometer tracking movement and rotation since the last state transition,
+	 * plus total movement.
 	 */
-	private double[] odometer = new double[] {0.0, 0.0};
+	private double[] odometer = new double[] {0.0, 0.0, 0.0};
 	
 	/**
 	 * The possible states of the robot. Kept small for easier evolution.
@@ -359,11 +360,12 @@ public class Robot implements Steppable, Oriented2D {
 		// Update the position based on midpoint speed and new orientation
 		double midpointSpeed = (rightSpeed + leftSpeed)/2;
 		odometer[0] += midpointSpeed;
+		Double2D current = field.getObjectLocation(this);
 		Double2D direction = new Double2D(Math.cos(orientation), Math.sin(orientation));
-		field.setObjectLocation(this, field.getObjectLocation(this).add(direction.multiply(midpointSpeed)));
+		field.setObjectLocation(this, current.add(direction.multiply(midpointSpeed)));
 		
 		// Check for collisions
-		for (Object obstacle: field.getObjectsWithinDistance(field.getObjectLocation(this), Robot.robotSize, false, true)) {
+		for (Object obstacle: field.getObjectsWithinDistance(current, Robot.robotSize, false, true)) {
 			Double2D obstaclePosition = field.getObjectLocation(obstacle);
 			Double2D position = field.getObjectLocation(this);
 			if (obstacle.getClass() == Robot.class) {
@@ -394,7 +396,11 @@ public class Robot implements Steppable, Oriented2D {
 			y = field.getWidth() - Robot.robotSize/2;
 		else
 			y = position.y;
-		field.setObjectLocation(this, new Double2D(x, y));
+		Double2D next = new Double2D(x, y);
+		field.setObjectLocation(this, next);
+		
+		// Update the long-term odometer for the actual distance moved after collisions
+		odometer[2] += next.distance(current);
 		
 		// If we're carrying something, update its position too
 		if (carrying != null)
@@ -504,6 +510,14 @@ public class Robot implements Steppable, Oriented2D {
 	 */
 	public double getDistanceTraveled() {
 		return odometer[0];
+	}
+	
+	/**
+	 * @return The absolute distance moved by the midpoint since
+	 * the Robot started.
+	 */
+	public double getTotalDistanceTraveled() {
+		return odometer[2];
 	}
 	
 	/**
