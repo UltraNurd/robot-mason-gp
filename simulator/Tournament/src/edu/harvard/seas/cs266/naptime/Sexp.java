@@ -130,7 +130,9 @@ public class Sexp {
 			if (firstAtomEquals(Grammar.ValueNoOp.name) ||
 				firstAtomEquals(Grammar.GetRange.name) ||
 				firstAtomEquals(Grammar.GetMidpointInCamera.name) ||
-				firstAtomEquals(Grammar.GetWidthInCamera.name)) {
+				firstAtomEquals(Grammar.GetWidthInCamera.name) ||
+				firstAtomEquals(Grammar.GetDistanceTraveled.name) ||
+				firstAtomEquals(Grammar.GetRotations.name)) {
 				if (!booleanOnly)
 					flat.add(this);
 			} else {
