@@ -45,6 +45,10 @@ public class Individual {
 		this.strategies = strategies;
 	}
 
+	public Individual(Individual other) {
+		this.strategies = other.strategies;
+	}
+
 	/**
 	 * The body of this method kinda reimplements SimState.doLoop().
 	 * Updates fitness by running this individual's strategies against

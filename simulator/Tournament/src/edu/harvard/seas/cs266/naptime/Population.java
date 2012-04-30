@@ -136,8 +136,14 @@ public class Population {
 		System.out.printf("%d\t%f\t%f\n", generations, totalFitness/size, maxFitness);
 		
 		// Pairwise mate the parents, then mutate their offspring
+		//   Don't include all parents - keep fittest individual, and
+		//   a mutation of it.
 		individuals.clear();
-		for (int i = 0; i < parents.size(); i += 2) {
+		individuals.add(fittest);
+		Individual fittestMutant = new Individual(fittest);
+		fittestMutant.mutate(mutationRate, generator);
+		individuals.add(fittestMutant);
+		for (int i = 2; i < parents.size(); i += 2) {
 			individuals.addAll(parents.get(i).crossoverAndMutate(parents.get(i + 1), mutationRate, generator));
 		}
 		
