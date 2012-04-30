@@ -58,13 +58,13 @@ public class Team implements Steppable {
 			else
 				members[r] = new Robot(strategy.get(r % strategy.size()), this, 0.0);				
 		if (opposing) {
-			field.setObjectLocation(members[0], new Double2D(field.getWidth()*0.8, field.getHeight()*0.2));
-			field.setObjectLocation(members[1], new Double2D(field.getWidth()*0.6, field.getHeight()*0.5));
-			field.setObjectLocation(members[2], new Double2D(field.getWidth()*0.8, field.getHeight()*0.8));
+			field.setObjectLocation(members[0], new Double2D(field.getWidth() - Robot.robotSize, field.getHeight()*0.2));
+			field.setObjectLocation(members[1], new Double2D(field.getWidth() - Robot.robotSize, field.getHeight()*0.5));
+			field.setObjectLocation(members[2], new Double2D(field.getWidth() - Robot.robotSize, field.getHeight()*0.8));
 		} else {
-			field.setObjectLocation(members[0], new Double2D(field.getWidth()*0.2, field.getHeight()*0.2));
-			field.setObjectLocation(members[1], new Double2D(field.getWidth()*0.4, field.getHeight()*0.5));
-			field.setObjectLocation(members[2], new Double2D(field.getWidth()*0.2, field.getHeight()*0.8));			
+			field.setObjectLocation(members[0], new Double2D(Robot.robotSize, field.getHeight()*0.2));
+			field.setObjectLocation(members[1], new Double2D(Robot.robotSize, field.getHeight()*0.5));
+			field.setObjectLocation(members[2], new Double2D(Robot.robotSize, field.getHeight()*0.8));			
 		}
 	}
 
