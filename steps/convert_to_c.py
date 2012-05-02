@@ -42,7 +42,7 @@ leaf_operators = [
     "pickUp",
     ]
 
-def c_lines(sexp_list):
+def c_lines(sexp_list, indent = ""):
     """
     Generator to produce lines of C from a step program.
     """
@@ -56,39 +56,39 @@ def c_lines(sexp_list):
     op = sexp_list.pop(0)
     if op == "step":
         for child in sexp_list:
-            for line in c_lines(child):
+            for line in c_lines(child, indent):
                 yield line
     elif op == "if":
-        yield "if (%s) {" % "".join(c_lines(sexp_list[0]))
-        lines = list(c_lines(sexp_list[1]))
+        yield indent + "if (%s) {" % "".join(c_lines(sexp_list[0], indent + "  "))
+        lines = list(c_lines(sexp_list[1], indent + "  "))
         if len(lines) == 1:
-            yield lines[0] + ";"
+            yield indent + "  " + lines[0] + ";"
         else:
             for line in lines:
                 yield line
         if len(sexp_list) == 3:
-            yield "} else {"
-            lines = list(c_lines(sexp_list[2]))
+            yield indent + "} else {"
+            lines = list(c_lines(sexp_list[2], indent + "  "))
             if len(lines) == 1:
-                yield lines[0] + ";"
+                yield indent + "  " + lines[0] + ";"
             else:
                 for line in lines:
                     yield line
-        yield "}"
+        yield indent + "}"
     elif op in ("and", "or"):
         if sexp_list[0][0] == "if":
             for child in sexp_list:
-                for line in c_lines(child):
+                for line in c_lines(child, indent):
                     yield line
         else:
             children = []
             for child in sexp_list:
-                children.extend(c_lines(child))
+                children.extend(c_lines(child, indent + "  "))
             yield (" %s " % operator_map[op]).join(children)
     elif op == "not":
-        yield operator_map[op] + "".join(c_lines(sexp_list[0]))
+        yield operator_map[op] + "".join(c_lines(sexp_list[0], indent + "  "))
     elif op in ("lt", "lte", "gt", "gte", "eq"):
-        yield "%s %s %s" % ("".join(map(str, c_lines(sexp_list[0]))), operator_map[op], "".join(map(str, c_lines(sexp_list[1]))))
+        yield "%s %s %s" % ("".join(map(str, c_lines(sexp_list[0], indent + "  "))), operator_map[op], "".join(map(str, c_lines(sexp_list[1], indent + "  "))))
     elif op == "inState":
         yield "inState(\"%s\")" % sexp_list[0]
     elif op == "setState":
