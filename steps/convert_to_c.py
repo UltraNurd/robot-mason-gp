@@ -16,7 +16,7 @@ import pyparsing
 
 # Define really basic S-expression parser
 left_paren, right_paren = map(pyparsing.Suppress, "()")
-integer = pyparsing.Regex(r'-?0|[1-9]\d*').setParseAction(lambda tokens: int(tokens[0]))
+integer = pyparsing.Regex(r'-?(0|[1-9]\d*)').setParseAction(lambda tokens: int(tokens[0]))
 double = pyparsing.Regex(r'-?\d+.\d+').setParseAction(lambda tokens: float(tokens[0]))
 sexpString = pyparsing.Word(pyparsing.alphas)
 sexp = pyparsing.Forward()
