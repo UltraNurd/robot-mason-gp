@@ -42,6 +42,13 @@ leaf_operators = [
     "pickUp",
     ]
 
+states = {
+    "search":0,
+    "carry":1,
+    "backup":2,
+    "uturn":3,
+    }
+
 def c_lines(sexp_list, indent = ""):
     """
     Generator to produce lines of C from a step program.
@@ -55,6 +62,7 @@ def c_lines(sexp_list, indent = ""):
     # Get and check operator name
     op = sexp_list.pop(0)
     if op == "step":
+        yield indent + "int current_state = 0;"
         for child in sexp_list:
             for line in c_lines(child, indent):
                 yield line
@@ -90,13 +98,15 @@ def c_lines(sexp_list, indent = ""):
     elif op in ("lt", "lte", "gt", "gte", "eq"):
         yield "%s %s %s" % ("".join(map(str, c_lines(sexp_list[0], indent + "  "))), operator_map[op], "".join(map(str, c_lines(sexp_list[1], indent + "  "))))
     elif op == "inState":
-        yield "inState(\"%s\")" % sexp_list[0]
+        yield "current_state == %d" % states[sexp_list[0]]
     elif op == "setState":
-        yield "setState(\"%s\")" % sexp_list[0]
+        yield "current_state = %d" % states[sexp_list[0]]
     elif op == "setSpeed":
         yield "setSpeed(%f, %f)" % tuple(sexp_list)
     elif op == "getRange":
         yield "getRange(%d)" % sexp_list[0]
+    elif op in ("drop", "pickUp"):
+        yield "current_state = %d" % int(op != "drop")
     elif op in leaf_operators:
         yield "%s()" % op
     else:
