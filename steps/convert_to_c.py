@@ -67,6 +67,8 @@ def c_lines(sexp_list, indent = ""):
             for line in c_lines(child, indent):
                 yield line
     elif op == "if":
+        if sexp_list[0][0] == "inState" and sexp_list[0][1] in ("backup", "uturn"):
+            return
         yield indent + "if (%s) {" % "".join(c_lines(sexp_list[0], indent + "  "))
         lines = list(c_lines(sexp_list[1], indent + "  "))
         if len(lines) == 1:
