@@ -76,7 +76,7 @@ def c_lines(sexp_list, indent = ""):
                     yield line
         yield indent + "}"
     elif op in ("and", "or"):
-        if sexp_list[0][0] == "if":
+        if sexp_list[0][0] == "if" or (sexp_list[0][0] in ("and", "or") and sexp_list[0][1][0] == "if"):
             for child in sexp_list:
                 for line in c_lines(child, indent):
                     yield line
