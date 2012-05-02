@@ -102,9 +102,9 @@ def c_lines(sexp_list, indent = ""):
     elif op == "setState":
         yield "current_state = %d" % states[sexp_list[0]]
     elif op == "setSpeed":
-        yield "setSpeed(%f, %f)" % tuple(sexp_list)
+        yield "e_set_speed(%d, %d)" % tuple([int(s*1250) for s in sexp_list])
     elif op == "getRange":
-        yield "getRange(%d)" % sexp_list[0]
+        yield "e_get_prox(%d)" % (sexp_list[0]/2)
     elif op in ("drop", "pickUp"):
         yield "current_state = %d" % int(op != "drop")
     elif op in leaf_operators:
