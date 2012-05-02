@@ -30,7 +30,7 @@ def convert(input_file, output_file):
     """
 
     # Parse
-    parsed = sexp.parseFile(input_file)
+    parsed = sexp.parseFile(input_file, parseAll = True)
 
     # Dump
     output_f = open(output_file, "w")
