@@ -63,6 +63,8 @@ def c_lines(sexp_list, indent = ""):
     op = sexp_list.pop(0)
     if op == "step":
         yield indent + "int current_state = 0;"
+        yield indent + "double foodAngle, foodDistance;"
+        yield indent + "findSingleFood(&foodAngle, &foodDistance);"
         for child in sexp_list:
             for line in c_lines(child, indent):
                 yield line
@@ -98,7 +100,9 @@ def c_lines(sexp_list, indent = ""):
     elif op == "not":
         yield operator_map[op] + "".join(c_lines(sexp_list[0], indent + "  "))
     elif op in ("lt", "lte", "gt", "gte", "eq"):
-        yield "%s %s %s" % ("".join(map(str, c_lines(sexp_list[0], indent + "  "))), operator_map[op], "".join(map(str, c_lines(sexp_list[1], indent + "  "))))
+        left = "".join(map(str, c_lines(sexp_list[0], indent + "  ")))
+        right = "".join(map(str, c_lines(sexp_list[1], indent + "  ")))
+        yield "%s %s %s" % (left, operator[op], right)
     elif op == "inState":
         yield "current_state == %d" % states[sexp_list[0]]
     elif op == "setState":
@@ -109,6 +113,10 @@ def c_lines(sexp_list, indent = ""):
         yield "e_get_prox(%d)" % (sexp_list[0]/2)
     elif op in ("drop", "pickUp"):
         yield "current_state = %d" % int(op != "drop")
+    elif op == "getMidpoint":
+        yield "foodAngle"
+    elif op == "getWidth":
+        yield "foodDistance"
     elif op in leaf_operators:
         yield "%s()" % op
     else:
